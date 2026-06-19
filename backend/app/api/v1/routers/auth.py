@@ -254,14 +254,14 @@ async def verify_2fa_login(
 )
 async def get_me(
     _: tuple[CurrentUser, str | None] = Depends(
-        require_permission("avisos:confirmar"),
+        require_permission("comunicacion:confirmar_aviso"),
     ),
 ) -> CurrentUser:
     """Return the current authenticated user's profile.
 
-    Requires ``avisos:confirmar`` permission (granted to all roles).
+    Requires ``comunicacion:confirmar_aviso`` permission (granted to all 7 roles).
     Demonstrates the ``require_permission`` guard — all authenticated
-    users with this permission can access their own profile.
+    users with any role can access their own profile.
     """
     current_user, _scope = _
     return current_user

@@ -5,6 +5,8 @@ marker (``'all'`` or ``'own'``). The same permission can be granted
 to multiple roles, possibly with different scopes.
 """
 
+from uuid import UUID
+
 from sqlalchemy import ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -23,11 +25,11 @@ class RolPermiso(Base, BaseEntityMixin):
         ),
     )
 
-    rol_id: Mapped[str] = mapped_column(
+    rol_id: Mapped[UUID] = mapped_column(
         ForeignKey("rol.id", ondelete="CASCADE"),
         nullable=False,
     )
-    permiso_id: Mapped[str] = mapped_column(
+    permiso_id: Mapped[UUID] = mapped_column(
         ForeignKey("permiso.id", ondelete="CASCADE"),
         nullable=False,
     )

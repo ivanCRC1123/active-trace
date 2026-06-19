@@ -4,6 +4,8 @@ Links a User to a Rol within a tenant. A user can have multiple roles;
 the effective permissions are the union of all assigned roles.
 """
 
+from uuid import UUID
+
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -22,11 +24,11 @@ class UserRol(Base, BaseEntityMixin):
         ),
     )
 
-    user_id: Mapped[str] = mapped_column(
+    user_id: Mapped[UUID] = mapped_column(
         ForeignKey("user.id", ondelete="CASCADE"),
         nullable=False,
     )
-    rol_id: Mapped[str] = mapped_column(
+    rol_id: Mapped[UUID] = mapped_column(
         ForeignKey("rol.id", ondelete="CASCADE"),
         nullable=False,
     )
