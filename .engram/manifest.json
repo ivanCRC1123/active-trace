@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "chunks": [
+    {
+      "id": "8af2e21f",
+      "created_by": "Lenovo",
+      "created_at": "2026-06-19T02:24:43Z",
+      "sessions": 4,
+      "memories": 0,
+      "prompts": 14
+    },
+    {
+      "id": "a4d83266",
+      "created_by": "Lenovo",
+      "created_at": "2026-06-19T03:57:56Z",
+      "sessions": 1,
+      "memories": 5,
+      "prompts": 5
+    }
+  ]
+}

@@ -89,6 +89,40 @@ Cargá la skill correspondiente al contexto **ANTES** de escribir código. Aplic
 
 ---
 
+## Engram — Memoria Persistente Compartida
+
+**Engram** está configurado para memoria compartida vía git entre desarrolladores. La DB local de cada dev vive en `~/.engram/engram.db`; los chunks exportados van en `.engram/chunks/` y se sincronizan por repo.
+
+### Convención de scopes
+- **`scope: team`** — memorias que deben ver ambos desarrolladores (decisiones técnicas, bugs, patrones, reglas no obvias). Usar `mem_save` con `scope: team`.
+- **`scope: personal`** — exploraciones internas, state de changes en progreso, resúmenes de sesión propios. Es el default.
+
+### Topic keys recomendadas
+| Área | `topic_key` |
+|------|-------------|
+| Artefactos SDD | `sdd/{change-name}/{artifact-type}` |
+| Decisiones de equipo | `team/decision/{topic}` |
+| Bugs y fixes | `team/bugfix/{area}` |
+| Patrones establecidos | `team/pattern/{pattern-name}` |
+
+### Sync con git (ambos devs)
+```bash
+# Antes de commitear: exportar memorias nuevas
+engram sync
+
+# Después de git pull: importar chunks de otros devs
+engram sync --import
+```
+
+El plugin OpenCode importa automáticamente al detectar `.engram/manifest.json`.
+
+### Setup para Dev #2
+1. Instalar Engram: seguir [guía oficial](https://github.com/Gentleman-Programming/engram)
+2. Clonar repo (recibe `.engram/chunks/` vía git)
+3. El plugin de OpenCode importa los chunks al iniciar — cero pasos manuales
+
+---
+
 ## Roadmap de Changes
 
 El plan de implementación completo está en [CHANGES.md](CHANGES.md). Resumen:
