@@ -1,6 +1,12 @@
 """Repositories for activia-trace domain models."""
 
 from app.repositories.asignacion_repository import AsignacionRepository
+from app.repositories.evaluacion_repository import (
+    ConvocadoRepository,
+    EvaluacionRepository,
+    ReservaRepository,
+    ResultadoRepository,
+)
 from app.repositories.entrada_padron_repository import EntradaPadronRepository
 from app.repositories.fecha_academica_repository import FechaAcademicaRepository
 from app.repositories.version_padron_repository import VersionPadronRepository
@@ -21,6 +27,10 @@ from app.repositories.user_rol_repository import UserRolRepository
 
 __all__ = [
     "AsignacionRepository",
+    "ConvocadoRepository",
+    "EvaluacionRepository",
+    "ReservaRepository",
+    "ResultadoRepository",
     "EntradaPadronRepository",
     "FechaAcademicaRepository",
     "VersionPadronRepository",

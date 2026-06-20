@@ -79,6 +79,8 @@ PERMISSION_MATRIX: dict[str, dict[str, str]] = {
         # C-17: F5.3 / F5.4
         "programas:gestionar": "all",
         "fechas_academicas:gestionar": "all",
+        # C-14: F7.1–F7.5
+        "coloquios:gestionar": "all",
     },
     # ADMIN has scope='all' for all permissions except those exclusive to FINANZAS
     # (grilla_salarial:operar, liquidaciones:calcular_cerrar, facturas:gestionar)
@@ -106,6 +108,8 @@ PERMISSION_MATRIX: dict[str, dict[str, str]] = {
         # C-17: F5.3 / F5.4
         "programas:gestionar": "all",
         "fechas_academicas:gestionar": "all",
+        # C-14: F7.1–F7.5
+        "coloquios:gestionar": "all",
     },
     "NEXO": {
         "comunicacion:confirmar_aviso": "all",
@@ -151,6 +155,8 @@ PERMISOS: list[dict[str, str]] = [
     # Added in C-17: programas y fechas académicas (F5.3, F5.4 — ADMIN + COORDINADOR)
     {"codigo": "programas:gestionar",            "modulo": "programas",         "descripcion": "Gestionar programas de materias"},
     {"codigo": "fechas_academicas:gestionar",    "modulo": "fechas_academicas", "descripcion": "Gestionar fechas académicas de evaluaciones"},
+    # Added in C-14: evaluaciones-y-coloquios (F7.1–F7.5 — ADMIN + COORDINADOR)
+    {"codigo": "coloquios:gestionar",            "modulo": "coloquios",         "descripcion": "Gestionar convocatorias de coloquios y evaluaciones"},
 ]
 
 

@@ -6,6 +6,13 @@ from app.models.calificacion import Calificacion, OrigenCalificacion
 from app.models.fecha_academica import FechaAcademica
 from app.models.finalizacion_actividad import FinalizacionActividad
 from app.models.entrada_padron import EntradaPadron
+from app.models.evaluacion import (
+    ConvocadoEvaluacion,
+    EstadoReserva,
+    Evaluacion,
+    ResultadoEvaluacion,
+    ReservaEvaluacion,
+)
 from app.models.version_padron import VersionPadron
 from app.models.audit_log import AuditLog
 from app.models.base import BaseEntityMixin, EncryptedString, EstadoBasico, SoftDeleteMixin, TenantScopedMixin, TimeStampedMixin, TipoEvaluacion
@@ -34,6 +41,11 @@ __all__ = [
     "FechaAcademica",
     "FinalizacionActividad",
     "OrigenCalificacion",
+    "ConvocadoEvaluacion",
+    "EstadoReserva",
+    "Evaluacion",
+    "ResultadoEvaluacion",
+    "ReservaEvaluacion",
     "EntradaPadron",
     "VersionPadron",
     "BaseEntityMixin",
