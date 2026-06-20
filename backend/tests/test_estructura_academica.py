@@ -18,6 +18,7 @@ from httpx import AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.encryption import encrypt, hmac_email
 from app.core.security import hash_password
 from app.models.permiso import Permiso
 from app.models.rol import Rol
@@ -41,7 +42,8 @@ ADMIN_B_EMAIL = "est.admin.b@test.edu.ar"
 async def struct_db(db_session: AsyncSession) -> dict:
     """Seed two tenants with one ADMIN each plus a PROFESOR in tenant A."""
     # Clean slate (reverse FK order)
-    # audit_log has FK actor_id → user (RESTRICT) — truncate before deleting users
+    # asignacion.rol_id and asignacion.usuario_id are RESTRICT — truncate first
+    await db_session.execute(text("TRUNCATE TABLE asignacion"))
     await db_session.execute(text("TRUNCATE TABLE audit_log"))
     await db_session.execute(text("DELETE FROM cohorte"))
     await db_session.execute(text("DELETE FROM materia"))
@@ -58,10 +60,11 @@ async def struct_db(db_session: AsyncSession) -> dict:
 
     def _user(email: str, tid) -> User:
         return User(
-            email=email,
+            email_cifrado=encrypt(email),
+            email_hash=hmac_email(email),
             password_hash=hash_password(USER_PASS),
             nombre="Test",
-            apellido="User",
+            apellidos="User",
             is_active=True,
             is_2fa_enabled=False,
             tenant_id=tid,

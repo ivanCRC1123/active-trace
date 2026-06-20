@@ -8,6 +8,7 @@ import pytest_asyncio
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.encryption import encrypt, hmac_email
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.repositories.refresh_token_repository import RefreshTokenRepository
@@ -15,18 +16,19 @@ from app.repositories.refresh_token_repository import RefreshTokenRepository
 # DDL for user + refresh_token tables
 RT_DDL = text("""
     CREATE TABLE IF NOT EXISTS "user" (
-        id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        email           VARCHAR(255) NOT NULL UNIQUE,
-        password_hash   VARCHAR(255) NOT NULL,
-        nombre          VARCHAR(100) NOT NULL,
-        apellido        VARCHAR(100) NOT NULL,
-        is_2fa_enabled  BOOLEAN NOT NULL DEFAULT FALSE,
-        totp_secret     TEXT,
-        is_active       BOOLEAN NOT NULL DEFAULT TRUE,
-        tenant_id       UUID NOT NULL REFERENCES tenant(id),
-        created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-        updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-        deleted_at      TIMESTAMPTZ
+        id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        email_cifrado       TEXT NOT NULL,
+        email_hash          VARCHAR(64) NOT NULL,
+        password_hash       VARCHAR(255) NOT NULL,
+        nombre              VARCHAR(100) NOT NULL,
+        apellidos           VARCHAR(255) NOT NULL,
+        is_2fa_enabled      BOOLEAN NOT NULL DEFAULT FALSE,
+        totp_secret         TEXT,
+        is_active           BOOLEAN NOT NULL DEFAULT TRUE,
+        tenant_id           UUID NOT NULL REFERENCES tenant(id),
+        created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+        updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+        deleted_at          TIMESTAMPTZ
     )
 """)
 
@@ -64,21 +66,23 @@ async def _insert_tenant(session: AsyncSession) -> uuid.UUID:
 
 
 async def _create_user(session: AsyncSession, tid: uuid.UUID) -> User:
+    email = f"rtr-{uuid.uuid4().hex[:6]}@test.com"
     result = await session.execute(
         text("""
-            INSERT INTO "user" (tenant_id, email, password_hash, nombre, apellido, is_2fa_enabled, is_active)
-            VALUES (:tid, :email, :ph, :n, :a, FALSE, TRUE)
-            RETURNING id, tenant_id, email
+            INSERT INTO "user" (tenant_id, email_cifrado, email_hash, password_hash, nombre, apellidos, is_2fa_enabled, is_active)
+            VALUES (:tid, :ec, :eh, :ph, :n, :a, FALSE, TRUE)
+            RETURNING id, tenant_id
         """),
-        {"tid": tid, "email": f"rtr-{uuid.uuid4().hex[:6]}@test.com",
+        {"tid": tid, "ec": encrypt(email), "eh": hmac_email(email),
          "ph": "hash", "n": "T", "a": "Repo"},
     )
     await session.commit()
     row = result.one()
-    # Build a User ORM instance
+    # Build a minimal User ORM instance (not re-persisted; only id/tenant_id used)
     user = User(
-        id=row.id, tenant_id=row.tenant_id, email=row.email,
-        password_hash="hash", nombre="T", apellido="Repo",
+        id=row.id, tenant_id=row.tenant_id,
+        email_cifrado=encrypt(email), email_hash=hmac_email(email),
+        password_hash="hash", nombre="T", apellidos="Repo",
     )
     return user
 

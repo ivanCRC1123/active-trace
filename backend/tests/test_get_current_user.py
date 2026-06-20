@@ -14,6 +14,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 
 from app.core.config import settings
+from app.core.encryption import encrypt, hmac_email
 from app.core.security import create_access_token, hash_password
 
 TEST_USER_ID = UUID("00000000-0000-0000-0000-000000000001")
@@ -62,18 +63,19 @@ TENANT_DDL = text("""
 
 USER_DDL = text("""
     CREATE TABLE IF NOT EXISTS "user" (
-        id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        email           VARCHAR(255) NOT NULL UNIQUE,
-        password_hash   VARCHAR(255) NOT NULL,
-        nombre          VARCHAR(100) NOT NULL,
-        apellido        VARCHAR(100) NOT NULL,
-        is_2fa_enabled  BOOLEAN NOT NULL DEFAULT FALSE,
-        totp_secret     TEXT,
-        is_active       BOOLEAN NOT NULL DEFAULT TRUE,
-        tenant_id       UUID NOT NULL REFERENCES tenant(id),
-        created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-        updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-        deleted_at      TIMESTAMPTZ
+        id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        email_cifrado       TEXT NOT NULL,
+        email_hash          VARCHAR(64) NOT NULL,
+        password_hash       VARCHAR(255) NOT NULL,
+        nombre              VARCHAR(100) NOT NULL,
+        apellidos           VARCHAR(255) NOT NULL,
+        is_2fa_enabled      BOOLEAN NOT NULL DEFAULT FALSE,
+        totp_secret         TEXT,
+        is_active           BOOLEAN NOT NULL DEFAULT TRUE,
+        tenant_id           UUID NOT NULL REFERENCES tenant(id),
+        created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+        updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+        deleted_at          TIMESTAMPTZ
     )
 """)
 
@@ -88,6 +90,7 @@ async def protected_client(app, db_session) -> AsyncGenerator[AsyncClient, None]
     # Ensure tables and seed data
     await db_session.execute(TENANT_DDL)
     await db_session.execute(USER_DDL)
+    await db_session.execute(text("TRUNCATE TABLE asignacion"))
     await db_session.execute(text('DELETE FROM "user"'))
     await db_session.execute(text("DELETE FROM tenant"))
     await db_session.execute(
@@ -96,13 +99,14 @@ async def protected_client(app, db_session) -> AsyncGenerator[AsyncClient, None]
     )
     await db_session.execute(
         text("""
-            INSERT INTO "user" (id, tenant_id, email, password_hash, nombre, apellido, is_active, is_2fa_enabled)
-            VALUES (:uid, :tid, :e, :ph, :n, :a, TRUE, FALSE)
+            INSERT INTO "user" (id, tenant_id, email_cifrado, email_hash, password_hash, nombre, apellidos, is_active, is_2fa_enabled)
+            VALUES (:uid, :tid, :ec, :eh, :ph, :n, :a, TRUE, FALSE)
         """),
         {
             "uid": TEST_USER_ID,
             "tid": TEST_TENANT_ID,
-            "e": "test@example.com",
+            "ec": encrypt("test@example.com"),
+            "eh": hmac_email("test@example.com"),
             "ph": hash_password("TestPass123!"),
             "n": "Test",
             "a": "User",

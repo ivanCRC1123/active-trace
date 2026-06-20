@@ -51,12 +51,13 @@ class BaseRepository(Generic[ModelT]):
         return result.scalars().all()
 
     async def get_by_id(self, id: str) -> ModelT | None:
-        """Return a record by id if it belongs to the tenant."""
+        """Return a non-deleted record by id if it belongs to the tenant."""
         stmt = (
             select(self.model_class)
             .where(
                 self.model_class.id == id,
                 self.model_class.tenant_id == self._tenant_id,
+                self.model_class.deleted_at.is_(None),
             )
         )
         result = await self._session.execute(stmt)

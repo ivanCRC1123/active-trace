@@ -66,18 +66,20 @@ async def seed() -> None:
         # Check if admin already exists
         from app.repositories.user_repository import UserRepository
         repo = UserRepository(session, tenant.id)
-        existing = await repo.get_by_email(ADMIN_EMAIL)
+        existing = await repo.get_by_email_hash(ADMIN_EMAIL)
 
         if existing is not None:
-            logger.info("Admin user '%s' already exists — skipping.", ADMIN_EMAIL)
+            logger.info("Admin user already exists — skipping.")
             return
 
-        # Create admin user
+        # Create admin user (email cifrado + blind index)
+        from app.core.encryption import encrypt, hmac_email  # noqa: PLC0415
         admin = User(
-            email=ADMIN_EMAIL,
+            email_cifrado=encrypt(ADMIN_EMAIL),
+            email_hash=hmac_email(ADMIN_EMAIL),
             password_hash=hash_password(ADMIN_PASSWORD),
             nombre=ADMIN_NOMBRE,
-            apellido=ADMIN_APELLIDO,
+            apellidos=ADMIN_APELLIDO,
             is_active=True,
             is_2fa_enabled=False,
             tenant_id=tenant.id,
@@ -86,7 +88,7 @@ async def seed() -> None:
         await session.commit()
         await session.refresh(admin)
 
-        logger.info("Admin user created: email=%s id=%s", ADMIN_EMAIL, admin.id)
+        logger.info("Admin user created: id=%s", admin.id)
         logger.info("Password: *** (set via SEED_ADMIN_PASSWORD env var)")
 
 

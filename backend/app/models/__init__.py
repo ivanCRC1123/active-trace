@@ -1,7 +1,8 @@
 """Domain models for activia-trace."""
 
+from app.models.asignacion import Asignacion
 from app.models.audit_log import AuditLog
-from app.models.base import BaseEntityMixin, EstadoBasico, SoftDeleteMixin, TenantScopedMixin, TimeStampedMixin
+from app.models.base import BaseEntityMixin, EncryptedString, EstadoBasico, SoftDeleteMixin, TenantScopedMixin, TimeStampedMixin
 from app.models.carrera import Carrera
 from app.models.cohorte import Cohorte
 from app.models.materia import Materia
@@ -15,8 +16,10 @@ from app.models.user import User
 from app.models.user_rol import UserRol
 
 __all__ = [
+    "Asignacion",
     "AuditLog",
     "BaseEntityMixin",
+    "EncryptedString",
     "Carrera",
     "Cohorte",
     "EstadoBasico",

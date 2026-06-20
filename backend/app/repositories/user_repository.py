@@ -1,34 +1,34 @@
-"""User repository — tenant-scoped queries with case-insensitive email lookup."""
+"""User repository — tenant-scoped queries with blind-index email lookup."""
 
-from uuid import UUID
-
-from sqlalchemy import func, select
+from sqlalchemy import select
 
 from app.models.user import User
 from app.repositories.base import BaseRepository
 
 
 class UserRepository(BaseRepository[User]):
-    """Repository for User model with email lookup."""
+    """Repository for User model. Email lookup via HMAC-SHA256 blind index."""
 
     @property
     def model_class(self) -> type[User]:
         return User
 
-    async def get_by_email(self, email: str) -> User | None:
-        """Find a user by email (case-insensitive) within the tenant scope.
+    async def get_by_email_hash(self, email: str) -> User | None:
+        """Find a user by email within the tenant scope using the blind index.
 
         Args:
-            email: The email to search for.
+            email: The plaintext email to search for (normalized internally).
 
         Returns:
             The User if found, None otherwise.
         """
+        from app.core.encryption import hmac_email  # noqa: PLC0415
+        h = hmac_email(email)
         stmt = (
             select(self.model_class)
             .where(
                 self.model_class.tenant_id == self._tenant_id,
-                func.lower(self.model_class.email) == func.lower(email),
+                self.model_class.email_hash == h,
                 self.model_class.deleted_at.is_(None),
             )
         )

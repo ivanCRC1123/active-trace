@@ -179,7 +179,7 @@ async def forgot_password(
     raw_token: str | None = None
     for tenant in tenants:
         repo = UserRepository(db, tenant.id)
-        user = await repo.get_by_email(body.email)
+        user = await repo.get_by_email_hash(body.email)
         if user is not None:
             service = _build_service(db, tenant.id)
             raw_token = await service.forgot_password(

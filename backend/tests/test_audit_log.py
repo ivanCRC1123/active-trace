@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit_codes import IMPERSONACION_FINALIZAR, IMPERSONACION_INICIAR, VALID_ACTION_CODES
 from app.core.config import settings
+from app.core.encryption import encrypt, hmac_email
 from app.core.security import create_access_token, hash_password
 from app.repositories.audit_log_repository import AuditLogRepository
 from app.schemas.auth import CurrentUser
@@ -65,7 +66,8 @@ async def audit_db(db_session: AsyncSession) -> dict:
     from app.models.user import User
     from app.models.user_rol import UserRol
 
-    # Clean slate — TRUNCATE audit_log first (RESTRICT FK prevents deleting users with audit rows)
+    # Clean slate — asignacion first (RESTRICT FKs on rol and user would block otherwise)
+    await db_session.execute(text("TRUNCATE TABLE asignacion"))
     await _truncate_audit(db_session)
     await db_session.execute(text("DELETE FROM user_rol"))
     await db_session.execute(text("DELETE FROM rol_permiso"))
@@ -87,9 +89,14 @@ async def audit_db(db_session: AsyncSession) -> dict:
     # Users
     def _user(email: str) -> User:
         return User(
-            email=email, password_hash=hash_password(USER_PASS),
-            nombre="Test", apellido="User",
-            is_active=True, is_2fa_enabled=False, tenant_id=tid,
+            email_cifrado=encrypt(email),
+            email_hash=hmac_email(email),
+            password_hash=hash_password(USER_PASS),
+            nombre="Test",
+            apellidos="User",
+            is_active=True,
+            is_2fa_enabled=False,
+            tenant_id=tid,
         )
 
     admin = _user(ADMIN_EMAIL)

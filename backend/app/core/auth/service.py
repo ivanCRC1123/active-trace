@@ -212,7 +212,7 @@ class AuthService:
 
         # Set tenant on repo (in case it differs from service tenant)
         user_repo = UserRepository(self._session, tenant_id)
-        user = await user_repo.get_by_email(email)
+        user = await user_repo.get_by_email_hash(email)
         if user is None:
             raise ValueError("Invalid email or password")
 
@@ -336,7 +336,7 @@ class AuthService:
             return None
 
         user_repo = UserRepository(self._session, tenant_id)
-        user = await user_repo.get_by_email(email)
+        user = await user_repo.get_by_email_hash(email)
         if user is None:
             return None
 
@@ -408,7 +408,7 @@ class AuthService:
             raise ValueError("User not found")
 
         secret = generate_totp_secret()
-        uri = get_totp_uri(secret, user.email, issuer="Trace")
+        uri = get_totp_uri(secret, user.email_cifrado, issuer="Trace")
 
         # Store the secret (but don't enable 2FA yet)
         stmt = (

@@ -19,9 +19,32 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, text
+from sqlalchemy import ForeignKey, String, text, types as sa_types
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
+
+
+class EncryptedString(sa_types.TypeDecorator):
+    """SQLAlchemy TypeDecorator que cifra en escritura y descifra en lectura (AES-256-GCM).
+
+    Usa encrypt/decrypt de app.core.encryption. El servicio siempre trabaja con plaintext.
+    No usar para columnas que necesiten filtrarse por igualdad directa en SQL.
+    """
+
+    impl = String
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        from app.core.encryption import encrypt  # noqa: PLC0415
+        return encrypt(value)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return None
+        from app.core.encryption import decrypt  # noqa: PLC0415
+        return decrypt(value)
 
 
 class EstadoBasico(str, enum.Enum):

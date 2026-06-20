@@ -11,6 +11,7 @@ import pytest
 import pytest_asyncio
 from httpx import AsyncClient
 
+from app.core.encryption import encrypt, hmac_email
 from app.core.security import hash_password
 
 TENANT_CODE = "tupad"
@@ -25,7 +26,8 @@ async def seeded_db(db_session):
     from app.models.user import User
     from sqlalchemy import select, text
 
-    # Clean slate
+    # Clean slate — asignacion first (RESTRICT FK on user would block otherwise)
+    await db_session.execute(text("TRUNCATE TABLE asignacion"))
     await db_session.execute(text("DELETE FROM refresh_token"))
     await db_session.execute(text("DELETE FROM recovery_token"))
     await db_session.execute(text('DELETE FROM "user"'))
@@ -40,10 +42,11 @@ async def seeded_db(db_session):
 
     # Create user
     user = User(
-        email=ADMIN_EMAIL,
+        email_cifrado=encrypt(ADMIN_EMAIL),
+        email_hash=hmac_email(ADMIN_EMAIL),
         password_hash=hash_password(ADMIN_PASS),
         nombre="Admin",
-        apellido="Sistema",
+        apellidos="Sistema",
         is_active=True,
         is_2fa_enabled=False,
         tenant_id=tenant.id,

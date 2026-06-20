@@ -17,6 +17,7 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.encryption import encrypt, hmac_email
 from app.core.permissions import check_permission, get_user_permissions
 from app.core.security import hash_password
 
@@ -53,7 +54,9 @@ async def rbac_db(db_session: AsyncSession) -> dict:
     from app.models.user import User
     from app.models.user_rol import UserRol
 
-    # Clean slate — delete in FK dependency order
+    # Clean slate — asignacion RESTRICT FKs on rol/user must go first
+    await db_session.execute(text("TRUNCATE TABLE asignacion"))
+    await db_session.execute(text("TRUNCATE TABLE audit_log"))
     await db_session.execute(text("DELETE FROM user_rol"))
     await db_session.execute(text("DELETE FROM rol_permiso"))
     await db_session.execute(text("DELETE FROM permiso"))
@@ -73,18 +76,21 @@ async def rbac_db(db_session: AsyncSession) -> dict:
 
     # Users
     admin_user = User(
-        email=ADMIN_EMAIL, password_hash=hash_password(USER_PASS),
-        nombre="Admin", apellido="Test",
+        email_cifrado=encrypt(ADMIN_EMAIL), email_hash=hmac_email(ADMIN_EMAIL),
+        password_hash=hash_password(USER_PASS),
+        nombre="Admin", apellidos="Test",
         is_active=True, is_2fa_enabled=False, tenant_id=tid,
     )
     profesor_user = User(
-        email=PROFESOR_EMAIL, password_hash=hash_password(USER_PASS),
-        nombre="Profesor", apellido="Test",
+        email_cifrado=encrypt(PROFESOR_EMAIL), email_hash=hmac_email(PROFESOR_EMAIL),
+        password_hash=hash_password(USER_PASS),
+        nombre="Profesor", apellidos="Test",
         is_active=True, is_2fa_enabled=False, tenant_id=tid,
     )
     alumno_user = User(
-        email=ALUMNO_EMAIL, password_hash=hash_password(USER_PASS),
-        nombre="Alumno", apellido="Test",
+        email_cifrado=encrypt(ALUMNO_EMAIL), email_hash=hmac_email(ALUMNO_EMAIL),
+        password_hash=hash_password(USER_PASS),
+        nombre="Alumno", apellidos="Test",
         is_active=True, is_2fa_enabled=False, tenant_id=tid,
     )
     db_session.add_all([admin_user, profesor_user, alumno_user])

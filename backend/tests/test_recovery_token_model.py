@@ -9,6 +9,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import Base
+from app.core.encryption import encrypt, hmac_email
 from app.models.recovery_token import RecoveryToken
 from app.models.user import User
 
@@ -35,12 +36,14 @@ async def _insert_tenant(session: AsyncSession) -> uuid.UUID:
 
 async def _create_user(session: AsyncSession, tid: uuid.UUID) -> User:
     """Create and return a test user."""
+    email = f"rec-{uuid.uuid4().hex[:6]}@test.com"
     user = User(
         tenant_id=tid,
-        email=f"rec-{uuid.uuid4().hex[:6]}@test.com",
+        email_cifrado=encrypt(email),
+        email_hash=hmac_email(email),
         password_hash="hash",
         nombre="Test",
-        apellido="User",
+        apellidos="User",
     )
     session.add(user)
     await session.flush()

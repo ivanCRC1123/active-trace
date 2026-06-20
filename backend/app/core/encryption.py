@@ -69,3 +69,15 @@ def decrypt(ciphertext_b64: str) -> str:
     plaintext = aesgcm.decrypt(nonce, ciphertext, None)
     logger.info("Decryption successful.")
     return plaintext.decode("utf-8")
+
+
+def hmac_email(email: str) -> str:
+    """HMAC-SHA256 del email normalizado — blind index para lookup sin exponer plaintext.
+
+    Determinístico: el mismo email siempre produce el mismo digest (case-insensitive).
+    """
+    import hashlib
+    import hmac as _hmac
+    key = _get_key()
+    normalized = email.strip().lower()
+    return _hmac.new(key, normalized.encode("utf-8"), hashlib.sha256).hexdigest()

@@ -33,18 +33,19 @@ TENANT_DDL = text("""
 
 USER_DDL = text("""
     CREATE TABLE IF NOT EXISTS "user" (
-        id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        email           VARCHAR(255) NOT NULL UNIQUE,
-        password_hash   VARCHAR(255) NOT NULL,
-        nombre          VARCHAR(100) NOT NULL,
-        apellido        VARCHAR(100) NOT NULL,
-        is_2fa_enabled  BOOLEAN NOT NULL DEFAULT FALSE,
-        totp_secret     TEXT,
-        is_active       BOOLEAN NOT NULL DEFAULT TRUE,
-        tenant_id       UUID NOT NULL REFERENCES tenant(id),
-        created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-        updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-        deleted_at      TIMESTAMPTZ
+        id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        email_cifrado       TEXT NOT NULL,
+        email_hash          VARCHAR(64) NOT NULL,
+        password_hash       VARCHAR(255) NOT NULL,
+        nombre              VARCHAR(100) NOT NULL,
+        apellidos           VARCHAR(255) NOT NULL,
+        is_2fa_enabled      BOOLEAN NOT NULL DEFAULT FALSE,
+        totp_secret         TEXT,
+        is_active           BOOLEAN NOT NULL DEFAULT TRUE,
+        tenant_id           UUID NOT NULL REFERENCES tenant(id),
+        created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+        updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+        deleted_at          TIMESTAMPTZ
     )
 """)
 
@@ -84,6 +85,7 @@ async def _ensure_tables(session: AsyncSession):
     await session.execute(USER_DDL)
     await session.execute(REFRESH_DDL)
     await session.execute(RECOVERY_DDL)
+    await session.execute(text("TRUNCATE TABLE asignacion"))
     await session.execute(text("DELETE FROM recovery_token"))
     await session.execute(text("DELETE FROM refresh_token"))
     await session.execute(text('DELETE FROM "user"'))
@@ -108,20 +110,28 @@ async def _insert_user(
     email: str | None = None,
     password: str = "TestPass123!",
 ) -> tuple:
-    """Insert a user via raw SQL, return (id, tid, email)."""
+    """Insert a user via raw SQL, return (id, tid, email_plaintext)."""
+    from app.core.encryption import encrypt, hmac_email  # noqa: PLC0415
     email = email or f"ausr-{uuid.uuid4().hex[:8]}@test.com"
     pw_hash = hash_password(password)
     result = await session.execute(
         text("""
-            INSERT INTO "user" (tenant_id, email, password_hash, nombre, apellido, is_2fa_enabled, is_active)
-            VALUES (:tid, :e, :ph, :n, :a, FALSE, TRUE)
-            RETURNING id, tenant_id, email
+            INSERT INTO "user" (tenant_id, email_cifrado, email_hash, password_hash, nombre, apellidos, is_2fa_enabled, is_active)
+            VALUES (:tid, :ec, :eh, :ph, :n, :a, FALSE, TRUE)
+            RETURNING id, tenant_id
         """),
-        {"tid": tid, "e": email, "ph": pw_hash, "n": "First", "a": "Last"},
+        {
+            "tid": tid,
+            "ec": encrypt(email),
+            "eh": hmac_email(email),
+            "ph": pw_hash,
+            "n": "First",
+            "a": "Last",
+        },
     )
     await session.commit()
     row = result.one()
-    return row.id, row.tenant_id, row.email
+    return row.id, row.tenant_id, email  # devolvemos email plaintext para pasarlo al login
 
 
 async def _insert_user_with_2fa(
@@ -129,20 +139,29 @@ async def _insert_user_with_2fa(
     tid: uuid.UUID,
 ) -> tuple:
     """Insert a user with 2FA enabled."""
+    from app.core.encryption import encrypt, hmac_email  # noqa: PLC0415
     secret = generate_totp_secret()
     email = f"2fa-{uuid.uuid4().hex[:8]}@test.com"
     pw_hash = hash_password("TestPass123!")
     result = await session.execute(
         text("""
-            INSERT INTO "user" (tenant_id, email, password_hash, nombre, apellido, is_2fa_enabled, totp_secret, is_active)
-            VALUES (:tid, :e, :ph, :n, :a, TRUE, :secret, TRUE)
-            RETURNING id, tenant_id, email
+            INSERT INTO "user" (tenant_id, email_cifrado, email_hash, password_hash, nombre, apellidos, is_2fa_enabled, totp_secret, is_active)
+            VALUES (:tid, :ec, :eh, :ph, :n, :a, TRUE, :secret, TRUE)
+            RETURNING id, tenant_id
         """),
-        {"tid": tid, "e": email, "ph": pw_hash, "n": "First", "a": "Last", "secret": secret},
+        {
+            "tid": tid,
+            "ec": encrypt(email),
+            "eh": hmac_email(email),
+            "ph": pw_hash,
+            "n": "First",
+            "a": "Last",
+            "secret": secret,
+        },
     )
     await session.commit()
     row = result.one()
-    return row.id, row.tenant_id, row.email, secret
+    return row.id, row.tenant_id, email, secret  # devolvemos email plaintext
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────
@@ -227,16 +246,23 @@ class TestLogin:
         """login() raises for inactive user."""
         await _ensure_tables(db_session)
         tid, codigo = await _insert_tenant(db_session)
+        from app.core.encryption import encrypt, hmac_email  # noqa: PLC0415
         pw_hash = hash_password("TestPass123!")
         email = f"inact-{uuid.uuid4().hex[:8]}@test.com"
         await db_session.execute(
             text("""
-                INSERT INTO "user" (tenant_id, email, password_hash, nombre, apellido, is_active, is_2fa_enabled)
-                VALUES (:tid, :e, :ph, :n, :a, FALSE, FALSE)
+                INSERT INTO "user" (tenant_id, email_cifrado, email_hash, password_hash, nombre, apellidos, is_active, is_2fa_enabled)
+                VALUES (:tid, :ec, :eh, :ph, :n, :a, FALSE, FALSE)
                 RETURNING id
             """),
-            {"tid": tid, "e": email,
-             "ph": pw_hash, "n": "In", "a": "Active"},
+            {
+                "tid": tid,
+                "ec": encrypt(email),
+                "eh": hmac_email(email),
+                "ph": pw_hash,
+                "n": "In",
+                "a": "Active",
+            },
         )
         await db_session.commit()
         svc = AuthService(
@@ -479,9 +505,10 @@ class TestRefresh:
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         await db_session.execute(
             text("UPDATE refresh_token SET expires_at = :exp WHERE token_hash = :th"),
-            {"exp": datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=1), "th": token_hash},
+            {"exp": datetime.now(timezone.utc) - timedelta(hours=1), "th": token_hash},
         )
         await db_session.commit()
+        db_session.expunge_all()
         with pytest.raises(ValueError, match="Refresh token has expired"):
             await svc.refresh(token)
 
