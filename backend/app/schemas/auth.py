@@ -157,3 +157,4 @@ class CurrentUser(BaseModel):
     user_id: UUID
     tenant_id: UUID
     roles: list[str]
+    impersonado_id: UUID | None = None

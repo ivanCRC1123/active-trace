@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api.v1.routers import auth, health
+from app.api.v1.routers import auth, auditoria, health
 from app.core.logging import setup_logging
 
 
@@ -57,6 +57,7 @@ def create_app() -> FastAPI:
     # ── Register routers ─────────────────────────────────────────
     app.include_router(health.router)
     app.include_router(auth.router)
+    app.include_router(auditoria.router)
 
     return app
 

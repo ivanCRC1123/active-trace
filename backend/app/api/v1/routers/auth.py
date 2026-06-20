@@ -13,13 +13,15 @@ Provides:
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.audit_codes import IMPERSONACION_FINALIZAR, IMPERSONACION_INICIAR
 from app.core.auth.service import AuthService
 from app.core.dependencies import get_current_user, get_db
 from app.core.permissions import require_permission
+from app.core.security import create_access_token
 from app.models.tenant import Tenant
 from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.repositories.recovery_token_repository import RecoveryTokenRepository
@@ -42,6 +44,8 @@ from app.schemas.auth import (
     TwoFAVerifyLoginRequest,
     TwoFAVerifyRequest,
 )
+from app.schemas.auditoria import ImpersonateRequest, ImpersonateResponse
+from app.services.audit_service import AuditService
 
 logger = logging.getLogger(__name__)
 
@@ -347,3 +351,113 @@ async def verify_2fa(
         )
 
     return {"detail": "2FA has been enabled successfully."}
+
+
+# ── Impersonation endpoints ────────────────────────────────────────────────
+
+
+@router.post(
+    "/impersonate",
+    responses={
+        200: {"model": ImpersonateResponse},
+        400: {"model": ErrorResponse},
+        403: {"model": ErrorResponse},
+        404: {"model": ErrorResponse},
+    },
+)
+async def start_impersonate(
+    body: ImpersonateRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    _: tuple[CurrentUser, str | None] = Depends(require_permission("impersonacion:usar")),
+) -> ImpersonateResponse:
+    """Begin an impersonation session as another user in the same tenant.
+
+    Issues a new access token carrying an ``impersonado_id`` claim.
+    The real actor's identity is preserved; all subsequent audit events
+    will record the real actor_id alongside the impersonated user.
+    """
+    current_user, _ = _
+
+    user_repo = UserRepository(db, current_user.tenant_id)
+    target = await user_repo.get_by_id(body.target_user_id)
+    if target is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Target user not found")
+    if not target.is_active:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Target user is inactive")
+
+    ip = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+
+    # Build a ctx that captures "actor=admin, impersonado=target" for the INICIAR row.
+    # current_user.impersonado_id is None here (the impersonation hasn't started yet).
+    from app.schemas.auth import CurrentUser as _CU  # noqa: PLC0415
+    ctx_for_log = _CU(
+        user_id=current_user.user_id,
+        tenant_id=current_user.tenant_id,
+        roles=current_user.roles,
+        impersonado_id=body.target_user_id,
+    )
+    audit = AuditService(db)
+    await audit.log(
+        current_user=ctx_for_log,
+        accion=IMPERSONACION_INICIAR,
+        detalle={"target_user_id": str(body.target_user_id)},
+        filas_afectadas=1,
+        ip=ip,
+        user_agent=user_agent,
+    )
+
+    token = create_access_token(
+        user_id=current_user.user_id,
+        tenant_id=current_user.tenant_id,
+        roles=current_user.roles,
+        impersonado_id=body.target_user_id,
+    )
+    return ImpersonateResponse(access_token=token, impersonado_id=body.target_user_id)
+
+
+@router.post(
+    "/impersonate/end",
+    responses={
+        200: {"description": "Impersonation ended"},
+        400: {"model": ErrorResponse},
+    },
+)
+async def end_impersonate(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """End the current impersonation session and issue a clean access token.
+
+    Logs IMPERSONACION_FINALIZAR before issuing the clean token.
+    Returns 400 if the caller is not currently impersonating.
+    """
+    if current_user.impersonado_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No active impersonation session",
+        )
+
+    impersonado_id = current_user.impersonado_id
+    ip = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+
+    audit = AuditService(db)
+    await audit.log(
+        current_user=current_user,
+        accion=IMPERSONACION_FINALIZAR,
+        detalle={"target_user_id": str(impersonado_id)},
+        filas_afectadas=1,
+        ip=ip,
+        user_agent=user_agent,
+    )
+
+    clean_token = create_access_token(
+        user_id=current_user.user_id,
+        tenant_id=current_user.tenant_id,
+        roles=current_user.roles,
+        impersonado_id=None,
+    )
+    return {"access_token": clean_token, "token_type": "bearer"}

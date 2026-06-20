@@ -82,6 +82,9 @@ async def get_current_user(
     tenant_id = UUID(payload["tenant_id"])
     roles: list[str] = payload.get("roles", [])
 
+    impersonado_id_str = payload.get("impersonado_id")
+    impersonado_id = UUID(impersonado_id_str) if impersonado_id_str else None
+
     # Verify user is still active in DB
     user_repo = UserRepository(db, tenant_id)
     user = await user_repo.get_by_id(user_id)
@@ -95,4 +98,5 @@ async def get_current_user(
         user_id=user_id,
         tenant_id=tenant_id,
         roles=roles,
+        impersonado_id=impersonado_id,
     )

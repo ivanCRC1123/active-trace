@@ -93,6 +93,7 @@ PERMISSION_MATRIX: dict[str, dict[str, str]] = {
         "usuarios:gestionar": "all",
         "auditoria:ver": "all",
         "tenant:configurar": "all",
+        "impersonacion:usar": "all",
     },
     "NEXO": {
         "comunicacion:confirmar_aviso": "all",
@@ -130,6 +131,8 @@ PERMISOS: list[dict[str, str]] = [
     {"codigo": "liquidaciones:calcular_cerrar",  "modulo": "liquidaciones",     "descripcion": "Calcular / cerrar liquidaciones"},
     {"codigo": "facturas:gestionar",             "modulo": "facturas",          "descripcion": "Gestionar facturas"},
     {"codigo": "tenant:configurar",              "modulo": "tenant",            "descripcion": "Configurar el tenant"},
+    # Added in C-05: required by RN-41 and protect POST /auth/impersonate
+    {"codigo": "impersonacion:usar",             "modulo": "impersonacion",     "descripcion": "Impersonar a otro usuario del tenant"},
 ]
 
 

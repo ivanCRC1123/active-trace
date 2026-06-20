@@ -58,6 +58,7 @@ def create_access_token(
     user_id: UUID,
     tenant_id: UUID,
     roles: list[str],
+    impersonado_id: UUID | None = None,
 ) -> str:
     """Create a signed JWT access token.
 
@@ -66,11 +67,13 @@ def create_access_token(
     - ``tenant_id``: tenant UUID (as string)
     - ``roles``: list of role strings
     - ``exp``: expiration timestamp (UTC, configurable minutes from now)
+    - ``impersonado_id``: (optional) UUID of impersonated user, as string
 
     Args:
         user_id: The user's UUID.
         tenant_id: The tenant's UUID.
         roles: List of role names for the user.
+        impersonado_id: If set, the JWT carries an impersonation claim.
 
     Returns:
         A signed JWT string (HS256 algorithm).
@@ -78,12 +81,15 @@ def create_access_token(
     now = datetime.now(timezone.utc)
     expire = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    payload = {
+    payload: dict = {
         "sub": str(user_id),
         "tenant_id": str(tenant_id),
         "roles": roles,
         "exp": expire,
     }
+
+    if impersonado_id is not None:
+        payload["impersonado_id"] = str(impersonado_id)
 
     token = pyjwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
     logger.debug("JWT access token created.")
