@@ -2,12 +2,14 @@
 
 from app.repositories.asignacion_repository import AsignacionRepository
 from app.repositories.entrada_padron_repository import EntradaPadronRepository
+from app.repositories.fecha_academica_repository import FechaAcademicaRepository
 from app.repositories.version_padron_repository import VersionPadronRepository
 from app.repositories.audit_log_repository import AuditLogRepository
 from app.repositories.base import BaseRepository
 from app.repositories.carrera_repository import CarreraRepository
 from app.repositories.cohorte_repository import CohorteRepository
 from app.repositories.materia_repository import MateriaRepository
+from app.repositories.programa_materia_repository import ProgramaMateriaRepository
 from app.repositories.usuario_repository import UsuarioRepository
 from app.repositories.user_repository import UserRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
@@ -20,12 +22,14 @@ from app.repositories.user_rol_repository import UserRolRepository
 __all__ = [
     "AsignacionRepository",
     "EntradaPadronRepository",
+    "FechaAcademicaRepository",
     "VersionPadronRepository",
     "AuditLogRepository",
     "BaseRepository",
     "CarreraRepository",
     "CohorteRepository",
     "MateriaRepository",
+    "ProgramaMateriaRepository",
     "UsuarioRepository",
     "UserRepository",
     "RefreshTokenRepository",

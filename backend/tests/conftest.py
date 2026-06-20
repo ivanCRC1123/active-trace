@@ -35,7 +35,9 @@ from sqlalchemy.pool import NullPool
 
 @pytest_asyncio.fixture(autouse=True)
 async def _clean_padron_tables(db_session: AsyncSession) -> None:
-    """Delete padron/calificacion/comunicacion rows before each test to avoid FK conflicts."""
+    """Delete padron/calificacion/comunicacion/programas rows before each test to avoid FK conflicts."""
+    await db_session.execute(text("DELETE FROM fecha_academica"))
+    await db_session.execute(text("DELETE FROM programa_materia"))
     await db_session.execute(text("DELETE FROM comunicacion"))
     await db_session.execute(text("DELETE FROM finalizacion_actividad"))
     await db_session.execute(text("DELETE FROM calificacion"))

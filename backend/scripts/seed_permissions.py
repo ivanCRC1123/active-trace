@@ -76,6 +76,9 @@ PERMISSION_MATRIX: dict[str, dict[str, str]] = {
         "auditoria:ver": "own",
         "padron:cargar": "all",
         "padron:ver": "all",
+        # C-17: F5.3 / F5.4
+        "programas:gestionar": "all",
+        "fechas_academicas:gestionar": "all",
     },
     # ADMIN has scope='all' for all permissions except those exclusive to FINANZAS
     # (grilla_salarial:operar, liquidaciones:calcular_cerrar, facturas:gestionar)
@@ -100,6 +103,9 @@ PERMISSION_MATRIX: dict[str, dict[str, str]] = {
         "impersonacion:usar": "all",
         "padron:cargar": "all",
         "padron:ver": "all",
+        # C-17: F5.3 / F5.4
+        "programas:gestionar": "all",
+        "fechas_academicas:gestionar": "all",
     },
     "NEXO": {
         "comunicacion:confirmar_aviso": "all",
@@ -142,6 +148,9 @@ PERMISOS: list[dict[str, str]] = [
     # Added in C-09: padrón ingesta
     {"codigo": "padron:cargar",                  "modulo": "padron",            "descripcion": "Importar y gestionar padrón de alumnos"},
     {"codigo": "padron:ver",                     "modulo": "padron",            "descripcion": "Consultar padrón activo"},
+    # Added in C-17: programas y fechas académicas (F5.3, F5.4 — ADMIN + COORDINADOR)
+    {"codigo": "programas:gestionar",            "modulo": "programas",         "descripcion": "Gestionar programas de materias"},
+    {"codigo": "fechas_academicas:gestionar",    "modulo": "fechas_academicas", "descripcion": "Gestionar fechas académicas de evaluaciones"},
 ]
 
 

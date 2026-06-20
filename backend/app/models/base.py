@@ -12,6 +12,9 @@ Shared enums:
 - ``EstadoBasico``: ``Activa`` / ``Inactiva`` for catalog entities
   (Carrera, Cohorte, Materia). Backed by the ``estado_basico`` PostgreSQL
   ENUM type created in migration 005.
+- ``TipoEvaluacion``: evaluation instance types shared by FechaAcademica
+  (C-17) and Evaluacion (C-14). Backed by the ``tipo_evaluacion`` PostgreSQL
+  ENUM type created in migration 011 with checkfirst=True.
 """
 
 import enum
@@ -52,6 +55,19 @@ class EstadoBasico(str, enum.Enum):
 
     Activa = "Activa"
     Inactiva = "Inactiva"
+
+
+class TipoEvaluacion(str, enum.Enum):
+    """Evaluation instance types (E15 FechaAcademica, E14 Evaluacion).
+
+    Backed by the ``tipo_evaluacion`` Postgres ENUM type (migration 011,
+    checkfirst=True). C-14 must use ``create_type=False``.
+    """
+
+    Parcial = "Parcial"
+    TP = "TP"
+    Coloquio = "Coloquio"
+    Recuperatorio = "Recuperatorio"
 
 
 class TimeStampedMixin:
