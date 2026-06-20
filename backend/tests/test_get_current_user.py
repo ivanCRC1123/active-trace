@@ -90,7 +90,7 @@ async def protected_client(app, db_session) -> AsyncGenerator[AsyncClient, None]
     # Ensure tables and seed data
     await db_session.execute(TENANT_DDL)
     await db_session.execute(USER_DDL)
-    await db_session.execute(text("TRUNCATE TABLE asignacion"))
+    await db_session.execute(text("DELETE FROM asignacion"))
     await db_session.execute(text('DELETE FROM "user"'))
     await db_session.execute(text("DELETE FROM tenant"))
     await db_session.execute(

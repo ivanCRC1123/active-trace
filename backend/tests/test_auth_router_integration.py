@@ -27,7 +27,7 @@ async def seeded_db(db_session):
     from sqlalchemy import select, text
 
     # Clean slate — asignacion first (RESTRICT FK on user would block otherwise)
-    await db_session.execute(text("TRUNCATE TABLE asignacion"))
+    await db_session.execute(text("DELETE FROM asignacion"))
     await db_session.execute(text("DELETE FROM refresh_token"))
     await db_session.execute(text("DELETE FROM recovery_token"))
     await db_session.execute(text('DELETE FROM "user"'))

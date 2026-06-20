@@ -43,7 +43,7 @@ async def struct_db(db_session: AsyncSession) -> dict:
     """Seed two tenants with one ADMIN each plus a PROFESOR in tenant A."""
     # Clean slate (reverse FK order)
     # asignacion.rol_id and asignacion.usuario_id are RESTRICT — truncate first
-    await db_session.execute(text("TRUNCATE TABLE asignacion"))
+    await db_session.execute(text("DELETE FROM asignacion"))
     await db_session.execute(text("TRUNCATE TABLE audit_log"))
     await db_session.execute(text("DELETE FROM cohorte"))
     await db_session.execute(text("DELETE FROM materia"))

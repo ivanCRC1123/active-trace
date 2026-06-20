@@ -40,7 +40,7 @@ async def asignacion_db(db_session: AsyncSession) -> dict:
     """Seed: Tenant A — coord (has equipos:asignar), no-perm user, target user + roles.
              Tenant B — coord_b with same perm.
     """
-    await db_session.execute(text("TRUNCATE TABLE asignacion"))
+    await db_session.execute(text("DELETE FROM asignacion"))
     await db_session.execute(text("TRUNCATE TABLE audit_log"))
     await db_session.execute(text("DELETE FROM cohorte"))
     await db_session.execute(text("DELETE FROM materia"))

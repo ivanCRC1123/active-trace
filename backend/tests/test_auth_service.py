@@ -85,7 +85,7 @@ async def _ensure_tables(session: AsyncSession):
     await session.execute(USER_DDL)
     await session.execute(REFRESH_DDL)
     await session.execute(RECOVERY_DDL)
-    await session.execute(text("TRUNCATE TABLE asignacion"))
+    await session.execute(text("DELETE FROM asignacion"))
     await session.execute(text("DELETE FROM recovery_token"))
     await session.execute(text("DELETE FROM refresh_token"))
     await session.execute(text('DELETE FROM "user"'))

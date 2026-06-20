@@ -92,7 +92,7 @@ async def moodle_db(db_session: AsyncSession) -> dict:
     """
     await db_session.execute(text("DELETE FROM entrada_padron"))
     await db_session.execute(text("DELETE FROM version_padron"))
-    await db_session.execute(text("TRUNCATE TABLE asignacion"))
+    await db_session.execute(text("DELETE FROM asignacion"))
     await db_session.execute(text("TRUNCATE TABLE audit_log"))
     await db_session.execute(text("DELETE FROM cohorte"))
     await db_session.execute(text("DELETE FROM materia"))

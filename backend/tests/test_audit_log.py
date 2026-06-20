@@ -67,7 +67,7 @@ async def audit_db(db_session: AsyncSession) -> dict:
     from app.models.user_rol import UserRol
 
     # Clean slate — asignacion first (RESTRICT FKs on rol and user would block otherwise)
-    await db_session.execute(text("TRUNCATE TABLE asignacion"))
+    await db_session.execute(text("DELETE FROM asignacion"))
     await _truncate_audit(db_session)
     await db_session.execute(text("DELETE FROM user_rol"))
     await db_session.execute(text("DELETE FROM rol_permiso"))

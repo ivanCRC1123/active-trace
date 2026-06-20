@@ -1,6 +1,7 @@
 """Domain models for activia-trace."""
 
 from app.models.asignacion import Asignacion
+from app.models.calificacion import Calificacion, OrigenCalificacion
 from app.models.entrada_padron import EntradaPadron
 from app.models.version_padron import VersionPadron
 from app.models.audit_log import AuditLog
@@ -14,12 +15,15 @@ from app.models.refresh_token import RefreshToken
 from app.models.rol import Rol
 from app.models.rol_permiso import RolPermiso
 from app.models.tenant import Tenant
+from app.models.umbral_materia import UmbralMateria
 from app.models.user import User
 from app.models.user_rol import UserRol
 
 __all__ = [
     "Asignacion",
     "AuditLog",
+    "Calificacion",
+    "OrigenCalificacion",
     "EntradaPadron",
     "VersionPadron",
     "BaseEntityMixin",
@@ -32,6 +36,7 @@ __all__ = [
     "TenantScopedMixin",
     "TimeStampedMixin",
     "Tenant",
+    "UmbralMateria",
     "User",
     "RefreshToken",
     "RecoveryToken",

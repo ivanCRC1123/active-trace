@@ -42,7 +42,7 @@ ADMIN_B_EMAIL = "usr.admin.b@test.edu.ar"
 async def usuario_db(db_session: AsyncSession) -> dict:
     """Seed two tenants: A with admin (has usuarios:gestionar) + coord (no perm), B with admin."""
     # Clean slate (reverse FK order)
-    await db_session.execute(text("TRUNCATE TABLE asignacion"))
+    await db_session.execute(text("DELETE FROM asignacion"))
     await db_session.execute(text("TRUNCATE TABLE audit_log"))
     await db_session.execute(text("DELETE FROM cohorte"))
     await db_session.execute(text("DELETE FROM materia"))

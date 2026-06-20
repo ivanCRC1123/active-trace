@@ -35,8 +35,9 @@ from sqlalchemy.pool import NullPool
 
 @pytest_asyncio.fixture(autouse=True)
 async def _clean_padron_tables(db_session: AsyncSession) -> None:
-    """Delete padron rows before each test so other fixtures can freely delete
-    users and tenants without hitting FK RESTRICT from version_padron.cargado_por."""
+    """Delete padron/calificacion rows before each test to avoid FK conflicts."""
+    await db_session.execute(text("DELETE FROM calificacion"))
+    await db_session.execute(text("DELETE FROM umbral_materia"))
     await db_session.execute(text("DELETE FROM entrada_padron"))
     await db_session.execute(text("DELETE FROM version_padron"))
     await db_session.commit()

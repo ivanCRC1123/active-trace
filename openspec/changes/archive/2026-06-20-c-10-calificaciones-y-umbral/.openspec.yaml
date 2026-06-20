@@ -1,0 +1,9 @@
+change: c-10-calificaciones-y-umbral
+status: in-progress
+governance: MEDIO
+depends_on:
+  - c-09-padron-ingesta-moodle
+  - c-07-usuarios-y-asignaciones
+  - c-05-audit-log
+unlocks:
+  - c-11-analisis-atrasados-reportes

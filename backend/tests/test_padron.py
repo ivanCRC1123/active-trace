@@ -118,11 +118,13 @@ async def padron_db(db_session: AsyncSession) -> dict:
               cohorte_a / cohorte_a2.
     Tenant B: coord_b, materia_b, cohorte_b.
     """
-    # Cleanup in FK dependency order
+    # Cleanup in FK dependency order (calificacion before asignacion for FK)
+    await db_session.execute(text("DELETE FROM calificacion"))
+    await db_session.execute(text("DELETE FROM umbral_materia"))
     await db_session.execute(text("DELETE FROM entrada_padron"))
     await db_session.execute(text("DELETE FROM version_padron"))
-    await db_session.execute(text("TRUNCATE TABLE asignacion"))
-    await db_session.execute(text("TRUNCATE TABLE audit_log"))
+    await db_session.execute(text("DELETE FROM asignacion"))
+    await db_session.execute(text("DELETE FROM audit_log"))
     await db_session.execute(text("DELETE FROM cohorte"))
     await db_session.execute(text("DELETE FROM materia"))
     await db_session.execute(text("DELETE FROM carrera"))
