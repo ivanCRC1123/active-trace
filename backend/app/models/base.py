@@ -1,4 +1,4 @@
-"""Base ORM mixins for all domain entities.
+"""Base ORM mixins and shared enums for all domain entities.
 
 Provides composable mixins:
 
@@ -6,8 +6,15 @@ Provides composable mixins:
 - ``SoftDeleteMixin``: ``deleted_at`` (nullable)
 - ``TenantScopedMixin``: ``tenant_id`` (FK → ``tenant.id``)
 - ``BaseEntityMixin``: combines all three.
+
+Shared enums:
+
+- ``EstadoBasico``: ``Activa`` / ``Inactiva`` for catalog entities
+  (Carrera, Cohorte, Materia). Backed by the ``estado_basico`` PostgreSQL
+  ENUM type created in migration 005.
 """
 
+import enum
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -15,6 +22,13 @@ from uuid import UUID
 from sqlalchemy import ForeignKey, text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
+
+
+class EstadoBasico(str, enum.Enum):
+    """Two-state lifecycle enum for catalog entities (E1, E2, E3)."""
+
+    Activa = "Activa"
+    Inactiva = "Inactiva"
 
 
 class TimeStampedMixin:
