@@ -21,6 +21,10 @@ COMUNICACION_APROBAR = "COMUNICACION_APROBAR"
 # C-14 — evaluaciones-y-coloquios
 RESULTADO_REGISTRAR = "RESULTADO_REGISTRAR"
 
+# C-15 — avisos-y-acknowledgment (VALID_ACTION_CODES: concern #3 / RN-24)
+AVISO_CREAR = "AVISO_CREAR"
+AVISO_ACK   = "AVISO_ACK"
+
 VALID_ACTION_CODES: frozenset[str] = frozenset(
     {
         IMPERSONACION_INICIAR,
@@ -32,5 +36,7 @@ VALID_ACTION_CODES: frozenset[str] = frozenset(
         ASIGNACION_MODIFICAR,
         LIQUIDACION_CERRAR,
         RESULTADO_REGISTRAR,
+        AVISO_CREAR,
+        AVISO_ACK,
     }
 )

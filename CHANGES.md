@@ -387,7 +387,7 @@ C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 →
   - `knowledge-base/07_flujos_principales.md` FL-07 (coloquio)
 
 ### [C-15] `avisos-y-acknowledgment`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado (2026-06-20)
 - **Scope**:
   - Modelos `Aviso` (alcance Global/PorMateria/PorCohorte/PorRol, severidad, vigencia inicio/fin, orden, requiere_ack) y `AcknowledgmentAviso`.
   - ABM avisos (F3.5): `avisos:publicar` (COORDINADOR/ADMIN). Visualización por destinatario según rol/alcance/cohorte (RN-18/19/20).

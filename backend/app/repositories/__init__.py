@@ -1,5 +1,6 @@
 """Repositories for activia-trace domain models."""
 
+from app.repositories.aviso_repository import AckAvisoRepository, AvisoRepository
 from app.repositories.asignacion_repository import AsignacionRepository
 from app.repositories.evaluacion_repository import (
     ConvocadoRepository,
@@ -26,6 +27,8 @@ from app.repositories.rol_permiso_repository import RolPermisoRepository
 from app.repositories.user_rol_repository import UserRolRepository
 
 __all__ = [
+    "AckAvisoRepository",
+    "AvisoRepository",
     "AsignacionRepository",
     "ConvocadoRepository",
     "EvaluacionRepository",

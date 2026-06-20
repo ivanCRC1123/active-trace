@@ -1,5 +1,6 @@
 """Domain models for activia-trace."""
 
+from app.models.aviso import AcknowledgmentAviso, AlcanceAviso, Aviso, SeveridadAviso
 from app.models.comunicacion import Comunicacion, EstadoComunicacion, TRANSICIONES_VALIDAS, validar_transicion
 from app.models.asignacion import Asignacion
 from app.models.calificacion import Calificacion, OrigenCalificacion
@@ -31,6 +32,10 @@ from app.models.user import User
 from app.models.user_rol import UserRol
 
 __all__ = [
+    "AcknowledgmentAviso",
+    "AlcanceAviso",
+    "Aviso",
+    "SeveridadAviso",
     "Comunicacion",
     "EstadoComunicacion",
     "TRANSICIONES_VALIDAS",
