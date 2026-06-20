@@ -1,0 +1,6 @@
+change: c-12-comunicaciones-cola-worker
+status: completed
+date: 2026-06-20
+dependencies:
+  - c-11-analisis-atrasados-reportes
+governance: ALTO

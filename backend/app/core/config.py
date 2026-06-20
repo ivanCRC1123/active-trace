@@ -101,6 +101,34 @@ class Settings(BaseSettings):
         description="Valores de celda que indican actividad completada en el reporte de finalización del LMS",
     )
 
+    # ── Email dispatcher (C-12) ──────────────────────────────────────
+    EMAIL_BACKEND: str = Field(
+        default="fake",
+        description="Backend de envío de emails: 'fake' (dev/tests) | 'smtp' (producción)",
+    )
+    SMTP_HOST: str = Field(default="", description="Host SMTP")
+    SMTP_PORT: int = Field(default=587, ge=1, description="Puerto SMTP")
+    SMTP_USER: str = Field(default="", description="Usuario SMTP")
+    SMTP_PASSWORD: str = Field(default="", description="Contraseña SMTP")
+    SMTP_USE_TLS: bool = Field(default=True, description="Usar TLS en SMTP")
+    SMTP_FROM_EMAIL: str = Field(
+        default="noreply@activia-trace.edu",
+        description="Dirección de origen para emails salientes",
+    )
+
+    # ── Worker de comunicaciones (C-12) ──────────────────────────────
+    WORKER_POLL_INTERVAL_SECS: int = Field(
+        default=5, ge=1,
+        description="Segundos entre iteraciones del worker de despacho de emails",
+    )
+    COMUNICACION_UMBRAL_MASIVO: int = Field(
+        default=10, ge=1,
+        description=(
+            "Cantidad de destinatarios a partir de la cual un envío se considera "
+            "masivo y requiere aprobación (simplificación de RN-17 para scope=own)"
+        ),
+    )
+
     # ── Validators ────────────────────────────────────────────────────
 
     @field_validator("SECRET_KEY")

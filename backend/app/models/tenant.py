@@ -5,7 +5,7 @@ inherits only ``TimeStampedMixin`` and ``SoftDeleteMixin`` (not
 ``TenantScopedMixin``, which would add a meaningless self-referencing FK).
 """
 
-from sqlalchemy import String, text
+from sqlalchemy import Boolean, String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -23,6 +23,10 @@ class Tenant(Base, TimeStampedMixin, SoftDeleteMixin):
     )
     estado: Mapped[str] = mapped_column(
         String(20), nullable=False, server_default=text("'activo'")
+    )
+    # C-12: aprobación de comunicaciones masivas configurable por tenant (RN-17).
+    requiere_aprobacion_comunicacion: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("TRUE")
     )
 
     def __repr__(self) -> str:
