@@ -128,7 +128,7 @@ C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 →
 ## FASE 0 — Cimiento e Infraestructura
 
 ### [C-01] `foundation-setup`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado
 - **Scope**:
   - Estructura de directorios Clean Architecture: `routers/`, `services/`, `repositories/`, `models/`, `schemas/`, `core/`, `integrations/`, `workers/`. Límite ≤500 LOC/archivo.
   - Esqueleto FastAPI con `app/main.py`, health-check `GET /health`, configuración Pydantic v2 Settings desde `.env`.
@@ -150,7 +150,7 @@ C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 →
 > Cadena estrictamente secuencial. Es el corazón multi-tenant del sistema: nada se construye sin esto.
 
 ### [C-02] `core-models-y-tenancy`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado
 - **Scope**:
   - Modelo `Tenant` raíz. Mixin base con `id` (UUID), `tenant_id`, `created_at`, `updated_at`, `deleted_at` (soft delete).
   - **Repository genérico** con scope de tenant SIEMPRE activo: todo query filtra por `tenant_id` por defecto (ADR-002 row-level). Un query sin scope debe fallar en review.
@@ -274,7 +274,7 @@ C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 →
 > Todos dependen de `C-07` (usuarios + asignaciones). Se pueden repartir entre los 3 agentes en paralelo.
 
 ### [C-08] `equipos-docentes`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado — 452/452 tests, 0 regresiones
 - **Scope**:
   - Vistas/endpoints sobre `Asignacion`: mis-equipos del docente (F4.2), gestión de asignaciones (F4.3).
   - Asignación masiva (F4.4): bloque docentes × materia × carrera × cohorte × rol con vigencia.

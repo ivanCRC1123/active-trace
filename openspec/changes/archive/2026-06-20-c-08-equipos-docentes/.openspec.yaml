@@ -1,0 +1,6 @@
+change: c-08-equipos-docentes
+status: completed
+date: 2026-06-20
+dependencies:
+  - c-07-usuarios-y-asignaciones
+governance: ALTO
