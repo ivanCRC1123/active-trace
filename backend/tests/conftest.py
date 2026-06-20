@@ -22,11 +22,24 @@ from collections.abc import AsyncGenerator
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import async_session_factory, init_engine
 from sqlalchemy.pool import NullPool
+
+
+# ── Global pre-test cleanup ───────────────────────────────────────────────────
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def _clean_padron_tables(db_session: AsyncSession) -> None:
+    """Delete padron rows before each test so other fixtures can freely delete
+    users and tenants without hitting FK RESTRICT from version_padron.cargado_por."""
+    await db_session.execute(text("DELETE FROM entrada_padron"))
+    await db_session.execute(text("DELETE FROM version_padron"))
+    await db_session.commit()
 
 
 # ── Cleanup fixtures for tests that need to suppress defaults ──────

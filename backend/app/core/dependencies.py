@@ -2,6 +2,7 @@
 
 - ``get_db`` — request-scoped async session (C-01)
 - ``get_current_user`` — resolves identity + tenant from verified JWT (C-03)
+- ``get_moodle_client`` — Moodle WS client (C-09)
 
 Permission guard dependencies live in ``app.core.permissions``:
 - ``require_permission`` — RBAC guard that checks a specific permission (C-04)
@@ -18,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import async_session_factory
 from app.core.security import verify_access_token
+from app.integrations.moodle_ws import MoodleWSClient, MoodleWSClientProtocol
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import CurrentUser
@@ -99,4 +101,18 @@ async def get_current_user(
         tenant_id=tenant_id,
         roles=roles,
         impersonado_id=impersonado_id,
+    )
+
+
+def get_moodle_client() -> MoodleWSClientProtocol:
+    """Return the configured Moodle WS client.
+
+    Returns an unconfigured client when MOODLE_BASE_URL is empty;
+    the service layer raises 503 in that case.
+    """
+    from app.core.config import settings  # noqa: PLC0415
+
+    return MoodleWSClient(
+        base_url=settings.MOODLE_BASE_URL,
+        token=settings.MOODLE_WS_TOKEN,
     )

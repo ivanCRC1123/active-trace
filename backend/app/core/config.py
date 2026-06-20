@@ -75,6 +75,17 @@ class Settings(BaseSettings):
         description="Sliding window size in seconds for rate limiting",
     )
 
+    # ── Moodle Web Services (optional) ───────────────────────────────
+    MOODLE_BASE_URL: str = Field(
+        default="",
+        description="Base URL del Moodle del tenant (vacío = integración deshabilitada)",
+    )
+
+    MOODLE_WS_TOKEN: str = Field(
+        default="",
+        description="Token de acceso al Moodle Web Services REST API",
+    )
+
     # ── Optional test database ────────────────────────────────────────
     DATABASE_URL_TEST: str | None = Field(
         default=None,

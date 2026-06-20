@@ -58,6 +58,8 @@ PERMISSION_MATRIX: dict[str, dict[str, str]] = {
         "encuentros:gestionar": "own",
         "guardias:registrar": "own",
         "tareas_internas:gestionar": "own",
+        "padron:cargar": "own",
+        "padron:ver": "own",
     },
     "COORDINADOR": {
         "comunicacion:confirmar_aviso": "all",
@@ -72,6 +74,8 @@ PERMISSION_MATRIX: dict[str, dict[str, str]] = {
         "avisos:publicar": "all",
         "equipos:asignar": "all",
         "auditoria:ver": "own",
+        "padron:cargar": "all",
+        "padron:ver": "all",
     },
     # ADMIN has scope='all' for all permissions except those exclusive to FINANZAS
     # (grilla_salarial:operar, liquidaciones:calcular_cerrar, facturas:gestionar)
@@ -94,6 +98,8 @@ PERMISSION_MATRIX: dict[str, dict[str, str]] = {
         "auditoria:ver": "all",
         "tenant:configurar": "all",
         "impersonacion:usar": "all",
+        "padron:cargar": "all",
+        "padron:ver": "all",
     },
     "NEXO": {
         "comunicacion:confirmar_aviso": "all",
@@ -133,6 +139,9 @@ PERMISOS: list[dict[str, str]] = [
     {"codigo": "tenant:configurar",              "modulo": "tenant",            "descripcion": "Configurar el tenant"},
     # Added in C-05: required by RN-41 and protect POST /auth/impersonate
     {"codigo": "impersonacion:usar",             "modulo": "impersonacion",     "descripcion": "Impersonar a otro usuario del tenant"},
+    # Added in C-09: padrón ingesta
+    {"codigo": "padron:cargar",                  "modulo": "padron",            "descripcion": "Importar y gestionar padrón de alumnos"},
+    {"codigo": "padron:ver",                     "modulo": "padron",            "descripcion": "Consultar padrón activo"},
 ]
 
 

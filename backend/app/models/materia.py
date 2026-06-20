@@ -22,6 +22,7 @@ class Materia(Base, BaseEntityMixin):
 
     codigo: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     nombre: Mapped[str] = mapped_column(String(255), nullable=False)
+    moodle_course_id: Mapped[str | None] = mapped_column(String(100), nullable=True, default=None)
     estado: Mapped[EstadoBasico] = mapped_column(
         sa.Enum(EstadoBasico, name="estado_basico", create_type=False),
         nullable=False,

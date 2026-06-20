@@ -3,6 +3,13 @@
 from app.services.asignacion_service import AsignacionService
 from app.services.audit_service import AuditService
 from app.services.estructura_academica_service import EstructuraAcademicaService
+from app.services.padron_service import PadronService
 from app.services.usuario_service import UsuarioService
 
-__all__ = ["AsignacionService", "AuditService", "EstructuraAcademicaService", "UsuarioService"]
+__all__ = [
+    "AsignacionService",
+    "AuditService",
+    "EstructuraAcademicaService",
+    "PadronService",
+    "UsuarioService",
+]
