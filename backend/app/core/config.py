@@ -92,6 +92,15 @@ class Settings(BaseSettings):
         description="PostgreSQL connection string for tests (optional)",
     )
 
+    # ── Finalizacion parser (C-11) ────────────────────────────────────
+    FINALIZACION_VALORES_COMPLETADO: list[str] = Field(
+        default=[
+            "completado", "completed", "sí", "si", "yes", "true", "1",
+            "finalizado", "finished", "done",
+        ],
+        description="Valores de celda que indican actividad completada en el reporte de finalización del LMS",
+    )
+
     # ── Validators ────────────────────────────────────────────────────
 
     @field_validator("SECRET_KEY")

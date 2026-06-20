@@ -1,0 +1,6 @@
+change: c-11-analisis-atrasados-reportes
+status: completed
+date: 2026-06-20
+dependencies:
+  - c-10-calificaciones-y-umbral
+governance: MEDIO

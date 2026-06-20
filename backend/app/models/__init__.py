@@ -2,6 +2,7 @@
 
 from app.models.asignacion import Asignacion
 from app.models.calificacion import Calificacion, OrigenCalificacion
+from app.models.finalizacion_actividad import FinalizacionActividad
 from app.models.entrada_padron import EntradaPadron
 from app.models.version_padron import VersionPadron
 from app.models.audit_log import AuditLog
@@ -23,6 +24,7 @@ __all__ = [
     "Asignacion",
     "AuditLog",
     "Calificacion",
+    "FinalizacionActividad",
     "OrigenCalificacion",
     "EntradaPadron",
     "VersionPadron",
