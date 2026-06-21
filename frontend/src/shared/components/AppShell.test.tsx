@@ -31,28 +31,28 @@ describe('AppShell menu filtering', () => {
     expect(screen.getByRole('link', { name: 'Inicio' })).toBeInTheDocument()
   })
 
-  it('shows Usuarios link when user has usuarios:leer permission', () => {
-    renderShell({ 'usuarios:leer': 'all' })
+  it('shows Usuarios link when user has usuarios:gestionar permission', () => {
+    renderShell({ 'usuarios:gestionar': 'all' })
     expect(screen.getByRole('link', { name: 'Usuarios' })).toBeInTheDocument()
   })
 
-  it('hides Usuarios link when user lacks usuarios:leer permission', () => {
+  it('hides Usuarios link when user lacks usuarios:gestionar permission', () => {
     renderShell({})
     expect(screen.queryByRole('link', { name: 'Usuarios' })).not.toBeInTheDocument()
   })
 
-  it('shows Alumnos link when user has alumnos:leer permission', () => {
-    renderShell({ 'alumnos:leer': 'own' })
+  it('shows Alumnos link when user has padron:ver permission', () => {
+    renderShell({ 'padron:ver': 'own' })
     expect(screen.getByRole('link', { name: 'Alumnos' })).toBeInTheDocument()
   })
 
-  it('hides Alumnos link when user lacks alumnos:leer permission', () => {
+  it('hides Alumnos link when user lacks padron:ver permission', () => {
     renderShell({})
     expect(screen.queryByRole('link', { name: 'Alumnos' })).not.toBeInTheDocument()
   })
 
   it('shows only permitted items when user has a subset of permissions', () => {
-    renderShell({ 'usuarios:leer': 'all', 'materias:leer': 'all' })
+    renderShell({ 'usuarios:gestionar': 'all', 'estructura_academica:gestionar': 'all' })
     expect(screen.getByRole('link', { name: 'Usuarios' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Materias' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Alumnos' })).not.toBeInTheDocument()

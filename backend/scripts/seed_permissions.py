@@ -271,15 +271,10 @@ async def seed() -> None:
                 logger.debug("Linked %s -> %s (scope=%s)", nombre, codigo, scope)
 
         # ── Assign ADMIN role to the seed admin user ──────────────────
-        from app.models.user import User  # noqa: PLC0415
+        from app.repositories.user_repository import UserRepository  # noqa: PLC0415
 
-        stmt = select(User).where(
-            User.tenant_id == tid,
-            User.email == ADMIN_EMAIL,
-            User.deleted_at.is_(None),
-        )
-        result = await session.execute(stmt)
-        admin_user = result.scalar_one_or_none()
+        repo = UserRepository(session, tid)
+        admin_user = await repo.get_by_email_hash(ADMIN_EMAIL)
 
         if admin_user is None:
             logger.warning(

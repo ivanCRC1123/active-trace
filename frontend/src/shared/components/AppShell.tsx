@@ -10,12 +10,12 @@ interface MenuItemDef {
 
 export const MENU_ITEMS: MenuItemDef[] = [
   { label: 'Inicio', path: '/', permission: null },
-  { label: 'Usuarios', path: '/usuarios', permission: 'usuarios:leer' },
-  { label: 'Alumnos', path: '/alumnos', permission: 'alumnos:leer' },
-  { label: 'Materias', path: '/materias', permission: 'materias:leer' },
-  { label: 'Comunicación', path: '/comunicacion', permission: 'comunicacion:leer' },
-  { label: 'Liquidaciones', path: '/liquidaciones', permission: 'liquidaciones:leer' },
-  { label: 'Auditoría', path: '/auditoria', permission: 'auditoria:leer' },
+  { label: 'Usuarios', path: '/usuarios', permission: 'usuarios:gestionar' },
+  { label: 'Alumnos', path: '/alumnos', permission: 'padron:ver' },
+  { label: 'Materias', path: '/materias', permission: 'estructura_academica:gestionar' },
+  { label: 'Comunicación', path: '/comunicacion', permission: 'comunicacion:enviar' },
+  { label: 'Liquidaciones', path: '/liquidaciones', permission: 'liquidaciones:calcular_cerrar' },
+  { label: 'Auditoría', path: '/auditoria', permission: 'auditoria:ver' },
 ]
 
 function NavItem({ item }: { item: MenuItemDef }) {
