@@ -12,6 +12,7 @@ from app.repositories.entrada_padron_repository import EntradaPadronRepository
 from app.repositories.fecha_academica_repository import FechaAcademicaRepository
 from app.repositories.version_padron_repository import VersionPadronRepository
 from app.repositories.audit_log_repository import AuditLogRepository
+from app.repositories.auditoria_repository import AuditoriaRepository
 from app.repositories.base import BaseRepository
 from app.repositories.carrera_repository import CarreraRepository
 from app.repositories.cohorte_repository import CohorteRepository
@@ -43,6 +44,7 @@ __all__ = [
     "FechaAcademicaRepository",
     "VersionPadronRepository",
     "AuditLogRepository",
+    "AuditoriaRepository",
     "BaseRepository",
     "CarreraRepository",
     "CohorteRepository",

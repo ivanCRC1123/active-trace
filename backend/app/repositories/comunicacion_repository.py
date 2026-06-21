@@ -10,10 +10,11 @@ No hay lógica de negocio aquí. Todo SQL vive aquí, nunca en Services.
 from __future__ import annotations
 
 from collections import defaultdict
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from uuid import UUID
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.comunicacion import (
@@ -21,6 +22,13 @@ from app.models.comunicacion import (
     EstadoComunicacion,
     validar_transicion,
 )
+
+
+@dataclass(frozen=True)
+class EstadoDocenteRow:
+    enviado_por: UUID
+    estado: str
+    cantidad: int
 
 
 class ComunicacionRepository:
@@ -200,6 +208,42 @@ class ComunicacionRepository:
         for com in comunicaciones:
             counts[com.estado] += 1
         return dict(counts)
+
+    # ── C-19 — panel queries ──────────────────────────────────────────────────
+
+    async def estado_por_docente(
+        self,
+        *,
+        materia_ids: set[UUID] | None = None,
+    ) -> list["EstadoDocenteRow"]:
+        """Agrupa comunicaciones por (enviado_por, estado) para el panel F9.1(b).
+
+        materia_ids=None → sin filtro de materia (scope=all).
+        materia_ids=set() → resultado vacío inmediato (COORDINADOR sin materias).
+        """
+        if materia_ids is not None and len(materia_ids) == 0:
+            return []
+
+        stmt = (
+            select(
+                Comunicacion.enviado_por,
+                Comunicacion.estado,
+                func.count().label("cantidad"),
+            )
+            .where(
+                Comunicacion.tenant_id == UUID(self._tenant_id),
+                Comunicacion.deleted_at.is_(None),
+            )
+        )
+        if materia_ids is not None:
+            stmt = stmt.where(Comunicacion.materia_id.in_(materia_ids))
+
+        stmt = stmt.group_by(Comunicacion.enviado_por, Comunicacion.estado)
+        rows = (await self._session.execute(stmt)).all()
+        return [
+            EstadoDocenteRow(enviado_por=r.enviado_por, estado=r.estado, cantidad=r.cantidad)
+            for r in rows
+        ]
 
     # ── Worker (cross-tenant) ─────────────────────────────────────────────────
 
