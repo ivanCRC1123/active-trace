@@ -5,6 +5,12 @@ any project imports so that the ``settings`` singleton in
 ``app.core.config`` is created with valid values.
 """
 
+import asyncio
+import sys
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 import os
 
 # Set default environment variables BEFORE any project imports so the
