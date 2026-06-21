@@ -12,9 +12,8 @@ from app.schemas.auth import (
     ForgotResponse,
     LoginRequest,
     LoginResponse,
-    LogoutRequest,
     LogoutResponse,
-    RefreshRequest,
+    MePermissionsResponse,
     RefreshResponse,
     ResetRequest,
     TwoFAEnrollResponse,
@@ -50,48 +49,60 @@ class TestLoginRequest:
             LoginRequest(tenant_code="tupad", email="a@b.com")
 
 
-class TestRefreshRequest:
-    """RED: RefreshRequest accepts refresh_token."""
-
-    def test_valid(self):
-        req = RefreshRequest(refresh_token="abc123")
-        assert req.refresh_token == "abc123"
-
-    def test_rejects_extra_fields(self):
-        with pytest.raises(ValidationError):
-            RefreshRequest(refresh_token="abc", extra="bad")
-
-
 class TestTokenResponse:
-    """RED: TokenResponse contains access_token, refresh_token, token_type, expires_in."""
+    """LoginResponse contains access_token, token_type, expires_in.
+
+    The refresh token is no longer in the JSON body — it is set as an
+    httpOnly cookie by the endpoint (Opción D, design.md D1).
+    """
 
     def test_valid(self):
-        resp = LoginResponse(
-            access_token="at", refresh_token="rt",
-            token_type="bearer", expires_in=900,
-        )
+        resp = LoginResponse(access_token="at", token_type="bearer", expires_in=900)
         assert resp.access_token == "at"
-        assert resp.refresh_token == "rt"
         assert resp.token_type == "bearer"
         assert resp.expires_in == 900
 
     def test_default_token_type(self):
-        resp = LoginResponse(access_token="at", refresh_token="rt", expires_in=900)
+        resp = LoginResponse(access_token="at", expires_in=900)
         assert resp.token_type == "bearer"
 
     def test_rejects_extra_fields(self):
         with pytest.raises(ValidationError):
-            LoginResponse(access_token="a", refresh_token="b", expires_in=1, extra="x")
+            LoginResponse(access_token="a", expires_in=1, extra="x")
+
+    def test_no_refresh_token_field(self):
+        """refresh_token is not part of LoginResponse (cookie-based)."""
+        with pytest.raises(ValidationError):
+            LoginResponse(access_token="a", refresh_token="r", expires_in=1)
 
 
 class TestRefreshResponse:
-    """RED: RefreshResponse same shape as LoginResponse."""
+    """RefreshResponse: access_token only — no refresh_token in body."""
 
     def test_valid(self):
-        resp = RefreshResponse(access_token="at", refresh_token="rt", expires_in=900)
-        assert resp.access_token
-        assert resp.refresh_token
+        resp = RefreshResponse(access_token="at", expires_in=900)
+        assert resp.access_token == "at"
         assert resp.token_type == "bearer"
+
+    def test_no_refresh_token_field(self):
+        with pytest.raises(ValidationError):
+            RefreshResponse(access_token="at", refresh_token="rt", expires_in=900)
+
+
+class TestMePermissionsResponse:
+    """MePermissionsResponse wraps the effective permission map."""
+
+    def test_valid_empty(self):
+        resp = MePermissionsResponse(permissions={})
+        assert resp.permissions == {}
+
+    def test_valid_with_permissions(self):
+        resp = MePermissionsResponse(permissions={"calificaciones:importar": "own"})
+        assert resp.permissions["calificaciones:importar"] == "own"
+
+    def test_rejects_extra_fields(self):
+        with pytest.raises(ValidationError):
+            MePermissionsResponse(permissions={}, extra="x")
 
 
 class TestForgotRequest:
@@ -180,18 +191,6 @@ class TestTwoFARequiredResponse:
         resp = TwoFARequiredResponse(session_token="st123")
         assert resp.requires_2fa is True
         assert resp.session_token == "st123"
-
-
-class TestLogoutRequest:
-    """RED: LogoutRequest accepts optional refresh_token."""
-
-    def test_valid_with_token(self):
-        req = LogoutRequest(refresh_token="rt123")
-        assert req.refresh_token == "rt123"
-
-    def test_valid_without_token(self):
-        req = LogoutRequest()
-        assert req.refresh_token is None
 
 
 class TestLogoutResponse:

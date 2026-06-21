@@ -32,10 +32,15 @@ class LoginRequest(BaseModel):
 
 
 class LoginResponse(BaseModel):
+    """Response for successful login and 2FA completion.
+
+    The refresh token is NOT returned here — it is set as an httpOnly
+    cookie (``refresh_token``, path ``/api/auth``) by the endpoint.
+    """
+
     model_config = ConfigDict(extra="forbid")
 
     access_token: str
-    refresh_token: str
     token_type: str = "bearer"
     expires_in: int
 
@@ -50,31 +55,38 @@ class TwoFARequiredResponse(BaseModel):
 # ── Auth: Refresh / Logout ──────────────────────────────────────────────
 
 
-class RefreshRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    refresh_token: str
-
-
 class RefreshResponse(BaseModel):
+    """Response for a successful token rotation.
+
+    The new refresh token is set as an httpOnly cookie by the endpoint,
+    not returned in the JSON body.
+    """
+
     model_config = ConfigDict(extra="forbid")
 
     access_token: str
-    refresh_token: str
     token_type: str = "bearer"
     expires_in: int
-
-
-class LogoutRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    refresh_token: Optional[str] = None
 
 
 class LogoutResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     detail: str
+
+
+# ── Session permissions ──────────────────────────────────────────────────
+
+
+class MePermissionsResponse(BaseModel):
+    """Effective permissions for the authenticated user.
+
+    Maps permission code → effective scope (``"all"`` or ``"own"``).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    permissions: dict[str, str]
 
 
 # ── 2FA ─────────────────────────────────────────────────────────────────

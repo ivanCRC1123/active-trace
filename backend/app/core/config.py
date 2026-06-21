@@ -86,6 +86,16 @@ class Settings(BaseSettings):
         description="Token de acceso al Moodle Web Services REST API",
     )
 
+    # ── Cookie settings ──────────────────────────────────────────────
+    COOKIE_SECURE: bool = Field(
+        default=False,
+        description=(
+            "Set Secure flag on the refresh-token cookie. "
+            "Must be False in local dev (http://localhost breaks Secure). "
+            "Set to True in production (HTTPS only)."
+        ),
+    )
+
     # ── Optional test database ────────────────────────────────────────
     DATABASE_URL_TEST: str | None = Field(
         default=None,

@@ -13,14 +13,15 @@ Provides:
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit_codes import IMPERSONACION_FINALIZAR, IMPERSONACION_INICIAR
 from app.core.auth.service import AuthService
+from app.core.config import settings
 from app.core.dependencies import get_current_user, get_db
-from app.core.permissions import require_permission
+from app.core.permissions import get_user_permissions, require_permission
 from app.core.security import create_access_token
 from app.models.tenant import Tenant
 from app.repositories.refresh_token_repository import RefreshTokenRepository
@@ -33,9 +34,8 @@ from app.schemas.auth import (
     ForgotResponse,
     LoginRequest,
     LoginResponse,
-    LogoutRequest,
     LogoutResponse,
-    RefreshRequest,
+    MePermissionsResponse,
     RefreshResponse,
     ResetRequest,
     ResetResponse,
@@ -77,21 +77,63 @@ def _raise_unauthorized(detail: str = "Invalid credentials") -> None:
     )
 
 
+_REFRESH_COOKIE_NAME = "refresh_token"
+_REFRESH_COOKIE_PATH = "/api/auth"
+
+
+def _set_refresh_cookie(response: Response, token: str) -> None:
+    """Write the refresh token as an httpOnly cookie.
+
+    ``Secure`` is controlled by ``settings.COOKIE_SECURE``:
+    - ``False`` in local dev (http://localhost — Secure would silently drop it).
+    - ``True`` in production (HTTPS only).
+    ``SameSite=Strict`` prevents the cookie from being sent on cross-site
+    requests, mitigating CSRF without needing an additional CSRF token.
+    ``Path`` is scoped to ``/api/auth`` so the cookie is never sent to
+    unrelated endpoints.
+    """
+    response.set_cookie(
+        key=_REFRESH_COOKIE_NAME,
+        value=token,
+        httponly=True,
+        samesite="strict",
+        path=_REFRESH_COOKIE_PATH,
+        secure=settings.COOKIE_SECURE,
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+    )
+
+
+def _clear_refresh_cookie(response: Response) -> None:
+    """Expire the refresh token cookie (max_age=0).
+
+    Attributes must match the original ``set_cookie`` call so the browser
+    identifies the correct cookie to expire.
+    """
+    response.delete_cookie(
+        key=_REFRESH_COOKIE_NAME,
+        path=_REFRESH_COOKIE_PATH,
+        httponly=True,
+        samesite="strict",
+        secure=settings.COOKIE_SECURE,
+    )
+
+
 # ── Public endpoints ───────────────────────────────────────────────────────
 
 
 @router.post("/login", responses={401: {"model": ErrorResponse}})
 async def login(
     body: LoginRequest,
+    response: Response,
     db: AsyncSession = Depends(get_db),
 ) -> LoginResponse | TwoFARequiredResponse:
     """Authenticate with tenant code, email, and password.
 
-    On success returns an access + refresh token pair.
-    If the user has 2FA enabled, returns a ``session_token`` that must
-    be exchanged via ``/api/auth/2fa/verify-login``.
+    On success returns an access token in the JSON body and sets the
+    refresh token as an httpOnly ``SameSite=Strict`` cookie.
+    If the user has 2FA enabled, returns a ``session_token`` instead
+    (no tokens issued yet — exchange via ``/api/auth/2fa/verify-login``).
     """
-    # Resolve tenant first so the service is correctly scoped
     stmt = select(Tenant).where(
         Tenant.codigo == body.tenant_code,
         Tenant.deleted_at.is_(None),
@@ -113,30 +155,38 @@ async def login(
         _raise_unauthorized(str(exc))
 
     if "requires_2fa" in outcome:
-        return TwoFARequiredResponse(
-            session_token=outcome["session_token"],
-        )
+        return TwoFARequiredResponse(session_token=outcome["session_token"])
 
-    return LoginResponse(**outcome)
+    _set_refresh_cookie(response, outcome["refresh_token"])
+    return LoginResponse(
+        access_token=outcome["access_token"],
+        token_type=outcome["token_type"],
+        expires_in=outcome["expires_in"],
+    )
 
 
 @router.post("/refresh", responses={401: {"model": ErrorResponse}})
 async def refresh(
-    body: RefreshRequest,
+    response: Response,
+    refresh_token: str | None = Cookie(default=None, alias=_REFRESH_COOKIE_NAME),
     db: AsyncSession = Depends(get_db),
 ) -> RefreshResponse:
-    """Rotate a refresh token and issue a new token pair.
+    """Rotate a refresh token and issue a new access token.
 
-    Implements token rotation with family revocation (token reuse
-    detection). If the supplied token was already revoked, the entire
-    token family is invalidated.
+    Reads the refresh token from the ``refresh_token`` httpOnly cookie
+    (set by ``/login`` or a prior ``/refresh`` call).  On success, the
+    old cookie is replaced with a new one carrying the rotated token.
+    Implements token rotation with family revocation: if the presented
+    token was already revoked, the entire token family is invalidated.
     """
-    # Look up the token hash to discover the tenant_id
-    from app.models.refresh_token import RefreshToken as RT
+    if not refresh_token:
+        _raise_unauthorized("Refresh token missing")
 
-    import hashlib
-    token_hash = hashlib.sha256(body.refresh_token.encode()).hexdigest()
+    import hashlib  # noqa: PLC0415
 
+    from app.models.refresh_token import RefreshToken as RT  # noqa: PLC0415
+
+    token_hash = hashlib.sha256(refresh_token.encode()).hexdigest()
     stmt = select(RT).where(
         RT.token_hash == token_hash,
         RT.deleted_at.is_(None),
@@ -146,15 +196,19 @@ async def refresh(
     if stored is None:
         _raise_unauthorized("Invalid refresh token")
 
-    # Build service scoped to the stored token's tenant
     service = _build_service(db, stored.tenant_id)
 
     try:
-        outcome = await service.refresh(body.refresh_token)
+        outcome = await service.refresh(refresh_token)
     except ValueError as exc:
         _raise_unauthorized(str(exc))
 
-    return RefreshResponse(**outcome)
+    _set_refresh_cookie(response, outcome["refresh_token"])
+    return RefreshResponse(
+        access_token=outcome["access_token"],
+        token_type=outcome["token_type"],
+        expires_in=outcome["expires_in"],
+    )
 
 
 @router.post("/forgot", responses={200: {"model": ForgotResponse}})
@@ -224,17 +278,17 @@ async def reset_password(
 @router.post("/2fa/verify-login", responses={401: {"model": ErrorResponse}})
 async def verify_2fa_login(
     body: TwoFAVerifyLoginRequest,
+    response: Response,
     db: AsyncSession = Depends(get_db),
 ) -> LoginResponse:
     """Complete a 2FA login challenge.
 
     Exchange a ``session_token`` (obtained from ``/login`` when 2FA is
-    enabled) plus a valid TOTP ``code`` for an access + refresh token
-    pair.
+    enabled) plus a valid TOTP ``code`` for an access token.  The refresh
+    token is set as an httpOnly cookie — same contract as ``/login``.
     """
-    # Build with a dummy tenant — verify_2fa_login resolves the session
-    # internally and uses the user's tenant for token issuance.
-    import uuid
+    import uuid  # noqa: PLC0415
+
     dummy_tenant_id = uuid.UUID("00000000-0000-0000-0000-000000000000")
     service = _build_service(db, dummy_tenant_id)
 
@@ -246,7 +300,12 @@ async def verify_2fa_login(
     except ValueError as exc:
         _raise_unauthorized(str(exc))
 
-    return LoginResponse(**outcome)
+    _set_refresh_cookie(response, outcome["refresh_token"])
+    return LoginResponse(
+        access_token=outcome["access_token"],
+        token_type=outcome["token_type"],
+        expires_in=outcome["expires_in"],
+    )
 
 
 # ── Protected endpoints (require valid JWT) ────────────────────────────────
@@ -271,25 +330,48 @@ async def get_me(
     return current_user
 
 
+@router.get(
+    "/me/permissions",
+    responses={401: {"model": ErrorResponse}},
+)
+async def get_me_permissions(
+    current_user: CurrentUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> MePermissionsResponse:
+    """Return effective permissions for the authenticated user.
+
+    Resolves the union of all active role assignments via
+    ``get_user_permissions``.  The frontend uses this to drive route
+    guards and menu visibility without duplicating the RBAC matrix.
+    """
+    permissions = await get_user_permissions(
+        user_id=current_user.user_id,
+        tenant_id=current_user.tenant_id,
+        session=db,
+    )
+    return MePermissionsResponse(permissions=permissions)
+
+
 @router.post(
     "/logout",
     responses={401: {"model": ErrorResponse}},
 )
 async def logout(
-    body: LogoutRequest,
+    response: Response,
+    refresh_token: str | None = Cookie(default=None, alias=_REFRESH_COOKIE_NAME),
     db: AsyncSession = Depends(get_db),
     current_user: CurrentUser = Depends(get_current_user),
 ) -> LogoutResponse:
-    """Revoke a refresh token.
+    """Revoke the current refresh token and clear the cookie.
 
-    Requires a valid access token in the ``Authorization`` header.
-    The ``refresh_token`` in the request body is optional — if omitted
-    no action is taken.
+    Reads the refresh token from the ``refresh_token`` httpOnly cookie.
+    If the cookie is absent the server-side revocation is skipped, but
+    the cookie is still cleared in the response.  This keeps logout
+    idempotent (calling it twice is safe).
     """
     service = _build_service(db, current_user.tenant_id)
-
-    await service.logout(refresh_token=body.refresh_token)
-
+    await service.logout(refresh_token=refresh_token)
+    _clear_refresh_cookie(response)
     return LogoutResponse(detail="Logged out successfully.")
 
 

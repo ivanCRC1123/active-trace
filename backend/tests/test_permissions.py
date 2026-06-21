@@ -359,10 +359,9 @@ class TestJWTRolesFromUserRol:
 
     async def test_refresh_jwt_reflects_current_roles(self, async_client, rbac_db):
         """New JWT after refresh contains up-to-date roles from UserRol."""
-        tokens = await self._login(async_client, PROFESOR_EMAIL)
-        resp = await async_client.post("/api/auth/refresh", json={
-            "refresh_token": tokens["refresh_token"],
-        })
+        await self._login(async_client, PROFESOR_EMAIL)
+        # Refresh token is in the httpOnly cookie set by /login — no body needed.
+        resp = await async_client.post("/api/auth/refresh")
         assert resp.status_code == 200
         payload = self._decode(resp.json()["access_token"])
         assert "PROFESOR" in payload["roles"]

@@ -34,25 +34,19 @@ class PermissionCheck(BaseModel):
     scope: str | None = None
 
 
-async def get_user_permissions(
+async def _resolve_effective_permissions(
     user_id: UUID,
     tenant_id: UUID,
     session: AsyncSession,
 ) -> dict[str, str]:
-    """Resolve all effective permissions for a user.
+    """Single source of truth for RBAC resolution.
 
-    Computes the union of permissions from all active roles assigned
-    to the user. If the same permission appears with both ``"all"``
-    and ``"own"`` scopes from different roles, ``"all"`` wins.
+    Executes the UserRol → Rol → RolPermiso → Permiso JOIN for all active
+    role assignments of the user and accumulates the effective permission map.
+    Rule: if the same permission appears in multiple roles with different scopes,
+    ``"all"`` wins over ``"own"``.
 
-    Args:
-        user_id: The user's UUID.
-        tenant_id: The tenant's UUID.
-        session: An async SQLAlchemy session.
-
-    Returns:
-        A dict mapping permission code → effective scope.
-        Empty dict if the user has no permissions.
+    Returns a dict mapping permission code → effective scope.
     """
     stmt = (
         select(Permiso.codigo, RolPermiso.scope)
@@ -70,14 +64,24 @@ async def get_user_permissions(
         )
     )
     result = await session.execute(stmt)
-    rows = result.all()
 
-    # Build effective permissions: union of all roles, 'all' wins over 'own'
     effective: dict[str, str] = {}
-    for codigo, scope in rows:
+    for codigo, scope in result.all():
         if codigo not in effective or (scope == "all" and effective[codigo] == "own"):
             effective[codigo] = scope
     return effective
+
+
+async def get_user_permissions(
+    user_id: UUID,
+    tenant_id: UUID,
+    session: AsyncSession,
+) -> dict[str, str]:
+    """Return all effective permissions for a user (code → scope).
+
+    Delegates to ``_resolve_effective_permissions``.
+    """
+    return await _resolve_effective_permissions(user_id, tenant_id, session)
 
 
 async def check_permission(
@@ -87,6 +91,10 @@ async def check_permission(
     session: AsyncSession,
 ) -> PermissionCheck:
     """Check if a user has a specific permission.
+
+    Resolves the full permission map via ``_resolve_effective_permissions``
+    and looks up ``permission_codigo`` in the result.  This guarantees that
+    ``check_permission`` and ``get_user_permissions`` can never diverge.
 
     Args:
         user_id: The user's UUID.
@@ -98,33 +106,11 @@ async def check_permission(
     Returns:
         A ``PermissionCheck`` with ``granted`` and ``scope``.
     """
-    stmt = (
-        select(RolPermiso.scope)
-        .select_from(UserRol)
-        .join(Rol, Rol.id == UserRol.rol_id)
-        .join(RolPermiso, RolPermiso.rol_id == Rol.id)
-        .join(Permiso, Permiso.id == RolPermiso.permiso_id)
-        .where(
-            UserRol.user_id == user_id,
-            UserRol.tenant_id == tenant_id,
-            UserRol.deleted_at.is_(None),
-            Rol.deleted_at.is_(None),
-            RolPermiso.deleted_at.is_(None),
-            Permiso.deleted_at.is_(None),
-            Permiso.codigo == permission_codigo,
-        )
-    )
-    result = await session.execute(stmt)
-    rows = result.all()
-
-    if not rows:
+    permissions = await _resolve_effective_permissions(user_id, tenant_id, session)
+    scope = permissions.get(permission_codigo)
+    if scope is None:
         return PermissionCheck(granted=False, scope=None)
-
-    # If any role grants 'all', that's the effective scope
-    scopes = {row[0] for row in rows}
-    if "all" in scopes:
-        return PermissionCheck(granted=True, scope="all")
-    return PermissionCheck(granted=True, scope="own")
+    return PermissionCheck(granted=True, scope=scope)
 
 
 # ── FastAPI Dependency Guard ─────────────────────────────────────────
