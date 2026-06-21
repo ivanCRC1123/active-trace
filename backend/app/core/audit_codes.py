@@ -32,6 +32,11 @@ FACTURA_ABONAR         = "FACTURA_ABONAR"           # marcar Factura como Abonad
 # C-20 — perfil-y-mensajeria-interna
 PERFIL_ACTUALIZAR = "PERFIL_ACTUALIZAR"
 
+# C-13 — encuentros-y-guardias (E9, E10, E11)
+ENCUENTRO_CREAR           = "ENCUENTRO_CREAR"
+ENCUENTRO_EDITAR_INSTANCIA = "ENCUENTRO_EDITAR_INSTANCIA"
+GUARDIA_REGISTRAR         = "GUARDIA_REGISTRAR"
+
 VALID_ACTION_CODES: frozenset[str] = frozenset(
     {
         IMPERSONACION_INICIAR,
@@ -48,5 +53,8 @@ VALID_ACTION_CODES: frozenset[str] = frozenset(
         GRILLA_SALARIAL_OPERAR,
         FACTURA_ABONAR,
         PERFIL_ACTUALIZAR,
+        ENCUENTRO_CREAR,
+        ENCUENTRO_EDITAR_INSTANCIA,
+        GUARDIA_REGISTRAR,
     }
 )

@@ -1,5 +1,8 @@
 """Domain models for activia-trace."""
 
+from app.models.guardia import Guardia
+from app.models.instancia_encuentro import InstanciaEncuentro
+from app.models.slot_encuentro import SlotEncuentro
 from app.models.aviso import AcknowledgmentAviso, AlcanceAviso, Aviso, SeveridadAviso
 from app.models.hilo_mensaje import HiloMensaje
 from app.models.hilo_participante import HiloParticipante
@@ -51,6 +54,9 @@ from app.models.user import User
 from app.models.user_rol import UserRol
 
 __all__ = [
+    "Guardia",
+    "InstanciaEncuentro",
+    "SlotEncuentro",
     "HiloMensaje",
     "HiloParticipante",
     "MensajeInterno",

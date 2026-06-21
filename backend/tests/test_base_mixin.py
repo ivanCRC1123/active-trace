@@ -8,8 +8,10 @@ import uuid
 from datetime import datetime
 
 import pytest
+import pytest_asyncio
 import sqlalchemy as sa
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import Base
 from app.models.base import BaseEntityMixin
@@ -84,6 +86,17 @@ _CREATE_TRIGGER = text(
     "BEFORE UPDATE ON _test_mixin "
     "FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
 )
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def _cleanup_test_mixin(db_session: AsyncSession):
+    """Remove _test_mixin rows after each DB test to avoid tenant FK violations."""
+    yield
+    try:
+        await db_session.execute(text("DELETE FROM _test_mixin"))
+        await db_session.commit()
+    except Exception:
+        await db_session.rollback()
 
 
 @pytest.mark.asyncio

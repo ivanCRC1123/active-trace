@@ -42,6 +42,26 @@ from sqlalchemy.pool import NullPool
 @pytest_asyncio.fixture(autouse=True)
 async def _clean_padron_tables(db_session: AsyncSession) -> None:
     """Delete domain rows before each test to avoid FK conflicts."""
+    # _test_mixin and _test_scoped are test-only tables (test_base_mixin.py /
+    # test_base_repository.py) that reference tenant with NO ACTION (RESTRICT).
+    # They must be cleared before any fixture does DELETE FROM tenant.
+    # The tables may not exist on a fresh DB, so we check first.
+    for _tbl in ("_test_mixin", "_test_scoped"):
+        exists = await db_session.execute(
+            text(
+                "SELECT EXISTS ("
+                "SELECT FROM information_schema.tables "
+                "WHERE table_schema = 'public' AND table_name = :tbl"
+                ")"
+            ),
+            {"tbl": _tbl},
+        )
+        if exists.scalar_one():
+            await db_session.execute(text(f"DELETE FROM {_tbl}"))
+    # C-13 tables (encuentros/guardias — instancia antes que slot; todo antes de asignacion/materia)
+    await db_session.execute(text("DELETE FROM instancia_encuentro"))
+    await db_session.execute(text("DELETE FROM slot_encuentro"))
+    await db_session.execute(text("DELETE FROM guardia"))
     # C-20 tables (mensajería — mensaje + participante antes que hilo; todo antes de user)
     await db_session.execute(text("DELETE FROM mensaje_interno"))
     await db_session.execute(text("DELETE FROM hilo_participante"))
