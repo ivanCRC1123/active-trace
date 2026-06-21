@@ -70,6 +70,29 @@ class TipoEvaluacion(str, enum.Enum):
     Recuperatorio = "Recuperatorio"
 
 
+class RolLiquidable(str, enum.Enum):
+    """Roles that participate in salary liquidation (E17, E18, E19 — RN-32)."""
+
+    PROFESOR    = "PROFESOR"
+    TUTOR       = "TUTOR"
+    NEXO        = "NEXO"
+    COORDINADOR = "COORDINADOR"
+
+
+class LiquidacionEstado(str, enum.Enum):
+    """Lifecycle states for Liquidacion (E19 — RN-22)."""
+
+    Abierta = "Abierta"
+    Cerrada = "Cerrada"
+
+
+class FacturaEstado(str, enum.Enum):
+    """Lifecycle states for Factura (E20 — RN-39)."""
+
+    Pendiente = "Pendiente"
+    Abonada   = "Abonada"
+
+
 class TimeStampedMixin:
     """Adds ``id`` (UUID PK), ``created_at`` and ``updated_at`` columns."""
 

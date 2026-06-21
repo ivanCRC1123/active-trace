@@ -246,6 +246,23 @@ class AsignacionRepository(BaseRepository[Asignacion]):
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none() is not None
 
+    # ── C-18: asignaciones activas en un período calendario ──────────────
+
+    async def list_activas_en_cohorte_periodo(
+        self, cohorte_id: UUID, periodo_desde: date, periodo_hasta: date
+    ) -> list[AsignacionConNombres]:
+        """Return AsignacionConNombres in a cohorte that overlap [periodo_desde, periodo_hasta].
+
+        Overlap: desde <= periodo_hasta AND (hasta IS NULL OR hasta >= periodo_desde).
+        """
+        stmt = self._base_con_nombres_stmt().where(
+            Asignacion.cohorte_id == cohorte_id,
+            Asignacion.desde <= periodo_hasta,
+            or_(Asignacion.hasta.is_(None), Asignacion.hasta >= periodo_desde),
+        )
+        rows = (await self._session.execute(stmt)).all()
+        return [self._row_to_acn(r) for r in rows]
+
     # ── C-08: bulk update vigencia ────────────────────────────────────
 
     async def bulk_update_vigencia(

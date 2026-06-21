@@ -16,16 +16,32 @@ from app.models.evaluacion import (
 )
 from app.models.version_padron import VersionPadron
 from app.models.audit_log import AuditLog
-from app.models.base import BaseEntityMixin, EncryptedString, EstadoBasico, SoftDeleteMixin, TenantScopedMixin, TimeStampedMixin, TipoEvaluacion
+from app.models.base import (
+    BaseEntityMixin,
+    EncryptedString,
+    EstadoBasico,
+    FacturaEstado,
+    LiquidacionEstado,
+    RolLiquidable,
+    SoftDeleteMixin,
+    TenantScopedMixin,
+    TimeStampedMixin,
+    TipoEvaluacion,
+)
 from app.models.carrera import Carrera
 from app.models.cohorte import Cohorte
+from app.models.factura import Factura
+from app.models.liquidacion import Liquidacion
 from app.models.materia import Materia
+from app.models.materia_grupo import MateriaGrupo
 from app.models.permiso import Permiso
 from app.models.programa_materia import ProgramaMateria
 from app.models.recovery_token import RecoveryToken
 from app.models.refresh_token import RefreshToken
 from app.models.rol import Rol
 from app.models.rol_permiso import RolPermiso
+from app.models.salario_base import SalarioBase
+from app.models.salario_plus import SalarioPlus
 from app.models.tenant import Tenant
 from app.models.umbral_materia import UmbralMateria
 from app.models.user import User
@@ -44,7 +60,12 @@ __all__ = [
     "AuditLog",
     "Calificacion",
     "FechaAcademica",
+    "Factura",
+    "FacturaEstado",
     "FinalizacionActividad",
+    "Liquidacion",
+    "LiquidacionEstado",
+    "MateriaGrupo",
     "OrigenCalificacion",
     "ConvocadoEvaluacion",
     "EstadoReserva",
@@ -60,6 +81,9 @@ __all__ = [
     "EstadoBasico",
     "Materia",
     "ProgramaMateria",
+    "RolLiquidable",
+    "SalarioBase",
+    "SalarioPlus",
     "SoftDeleteMixin",
     "TenantScopedMixin",
     "TimeStampedMixin",

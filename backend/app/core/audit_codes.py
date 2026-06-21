@@ -25,6 +25,10 @@ RESULTADO_REGISTRAR = "RESULTADO_REGISTRAR"
 AVISO_CREAR = "AVISO_CREAR"
 AVISO_ACK   = "AVISO_ACK"
 
+# C-18 — liquidaciones-y-honorarios (RN-23, RN-24)
+GRILLA_SALARIAL_OPERAR = "GRILLA_SALARIAL_OPERAR"  # alta/edición/baja de Base, Plus, MateriaGrupo
+FACTURA_ABONAR         = "FACTURA_ABONAR"           # marcar Factura como Abonada
+
 VALID_ACTION_CODES: frozenset[str] = frozenset(
     {
         IMPERSONACION_INICIAR,
@@ -38,5 +42,7 @@ VALID_ACTION_CODES: frozenset[str] = frozenset(
         RESULTADO_REGISTRAR,
         AVISO_CREAR,
         AVISO_ACK,
+        GRILLA_SALARIAL_OPERAR,
+        FACTURA_ABONAR,
     }
 )

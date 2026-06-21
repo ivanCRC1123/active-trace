@@ -24,6 +24,11 @@ from app.repositories.recovery_token_repository import RecoveryTokenRepository
 from app.repositories.rol_repository import RolRepository
 from app.repositories.permiso_repository import PermisoRepository
 from app.repositories.rol_permiso_repository import RolPermisoRepository
+from app.repositories.factura_repository import FacturaRepository
+from app.repositories.liquidacion_repository import LiquidacionRepository
+from app.repositories.materia_grupo_repository import MateriaGrupoRepository
+from app.repositories.salario_base_repository import SalarioBaseRepository
+from app.repositories.salario_plus_repository import SalarioPlusRepository
 from app.repositories.user_rol_repository import UserRolRepository
 
 __all__ = [
@@ -50,5 +55,10 @@ __all__ = [
     "RolRepository",
     "PermisoRepository",
     "RolPermisoRepository",
+    "FacturaRepository",
+    "LiquidacionRepository",
+    "MateriaGrupoRepository",
+    "SalarioBaseRepository",
+    "SalarioPlusRepository",
     "UserRolRepository",
 ]

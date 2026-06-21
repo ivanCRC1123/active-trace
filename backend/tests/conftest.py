@@ -36,6 +36,12 @@ from sqlalchemy.pool import NullPool
 @pytest_asyncio.fixture(autouse=True)
 async def _clean_padron_tables(db_session: AsyncSession) -> None:
     """Delete domain rows before each test to avoid FK conflicts."""
+    # C-18 tables (liquidaciones — before materia/cohorte/user)
+    await db_session.execute(text("DELETE FROM factura"))
+    await db_session.execute(text("DELETE FROM liquidacion"))
+    await db_session.execute(text("DELETE FROM materia_grupo"))
+    await db_session.execute(text("DELETE FROM salario_base"))
+    await db_session.execute(text("DELETE FROM salario_plus"))
     # C-15 tables must be cleared before aviso (and aviso before materia/cohorte)
     await db_session.execute(text("DELETE FROM acknowledgment_aviso"))
     await db_session.execute(text("DELETE FROM aviso"))
