@@ -42,6 +42,10 @@ from sqlalchemy.pool import NullPool
 @pytest_asyncio.fixture(autouse=True)
 async def _clean_padron_tables(db_session: AsyncSession) -> None:
     """Delete domain rows before each test to avoid FK conflicts."""
+    # C-20 tables (mensajería — mensaje + participante antes que hilo; todo antes de user)
+    await db_session.execute(text("DELETE FROM mensaje_interno"))
+    await db_session.execute(text("DELETE FROM hilo_participante"))
+    await db_session.execute(text("DELETE FROM hilo_mensaje"))
     # C-18 tables (liquidaciones — before materia/cohorte/user)
     await db_session.execute(text("DELETE FROM factura"))
     await db_session.execute(text("DELETE FROM liquidacion"))

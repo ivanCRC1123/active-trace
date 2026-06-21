@@ -29,6 +29,9 @@ AVISO_ACK   = "AVISO_ACK"
 GRILLA_SALARIAL_OPERAR = "GRILLA_SALARIAL_OPERAR"  # alta/edición/baja de Base, Plus, MateriaGrupo
 FACTURA_ABONAR         = "FACTURA_ABONAR"           # marcar Factura como Abonada
 
+# C-20 — perfil-y-mensajeria-interna
+PERFIL_ACTUALIZAR = "PERFIL_ACTUALIZAR"
+
 VALID_ACTION_CODES: frozenset[str] = frozenset(
     {
         IMPERSONACION_INICIAR,
@@ -44,5 +47,6 @@ VALID_ACTION_CODES: frozenset[str] = frozenset(
         AVISO_ACK,
         GRILLA_SALARIAL_OPERAR,
         FACTURA_ABONAR,
+        PERFIL_ACTUALIZAR,
     }
 )

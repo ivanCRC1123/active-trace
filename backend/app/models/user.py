@@ -43,6 +43,7 @@ class User(Base, BaseEntityMixin):
     facturador: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default="false", default=False
     )
+    sexo: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
 
     def __repr__(self) -> str:
         return f"<User id={self.id}>"
