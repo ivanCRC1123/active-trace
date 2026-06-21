@@ -1,0 +1,6 @@
+change: c-16-tareas-internas
+status: proposed
+date: 2026-06-21
+dependencies:
+  - c-07-usuarios-y-asignaciones
+governance: MEDIO

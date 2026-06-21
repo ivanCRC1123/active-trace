@@ -58,6 +58,9 @@ async def _clean_padron_tables(db_session: AsyncSession) -> None:
         )
         if exists.scalar_one():
             await db_session.execute(text(f"DELETE FROM {_tbl}"))
+    # C-16 tables (tareas — comentario antes que tarea; todo antes de user/materia)
+    await db_session.execute(text("DELETE FROM comentario_tarea"))
+    await db_session.execute(text("DELETE FROM tarea"))
     # C-13 tables (encuentros/guardias — instancia antes que slot; todo antes de asignacion/materia)
     await db_session.execute(text("DELETE FROM instancia_encuentro"))
     await db_session.execute(text("DELETE FROM slot_encuentro"))

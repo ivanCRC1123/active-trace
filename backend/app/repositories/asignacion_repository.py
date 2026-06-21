@@ -263,6 +263,31 @@ class AsignacionRepository(BaseRepository[Asignacion]):
         rows = (await self._session.execute(stmt)).all()
         return [self._row_to_acn(r) for r in rows]
 
+    # ── C-16: verificar asignación vigente en materia (scope=own PROFESOR) ──
+
+    async def existe_vigente_en_materia(
+        self,
+        *,
+        usuario_id: UUID,
+        materia_id: UUID,
+        today: date,
+    ) -> bool:
+        """True si el usuario tiene al menos una asignación vigente a esa materia."""
+        stmt = (
+            select(sa.literal(1))
+            .where(
+                Asignacion.tenant_id == self._tenant_id,
+                Asignacion.deleted_at.is_(None),
+                Asignacion.usuario_id == usuario_id,
+                Asignacion.materia_id == materia_id,
+                Asignacion.desde <= today,
+                or_(Asignacion.hasta.is_(None), Asignacion.hasta >= today),
+            )
+            .limit(1)
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none() is not None
+
     # ── C-08: bulk update vigencia ────────────────────────────────────
 
     async def bulk_update_vigencia(

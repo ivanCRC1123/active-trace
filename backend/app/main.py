@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api.v1.routers import analisis, asignaciones, auth, auditoria, avisos, calificaciones, coloquios, comunicaciones, encuentros, equipos, estructura_academica, facturas, grilla_salarial, guardias, health, inbox, liquidaciones, padron, perfil, programas_y_fechas, usuarios
+from app.api.v1.routers import analisis, asignaciones, auth, auditoria, avisos, calificaciones, coloquios, comunicaciones, encuentros, equipos, estructura_academica, facturas, grilla_salarial, guardias, health, inbox, liquidaciones, padron, perfil, programas_y_fechas, tareas, usuarios
 from app.core.logging import setup_logging
 
 
@@ -77,6 +77,7 @@ def create_app() -> FastAPI:
     app.include_router(inbox.router)
     app.include_router(encuentros.router)
     app.include_router(guardias.router)
+    app.include_router(tareas.router)
 
     return app
 
