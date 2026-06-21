@@ -1,7 +1,7 @@
-import { type ReactNode } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
-import { useSessionStore } from '@/store/sessionStore'
+import { ProtectedRoute } from '@/shared/components/ProtectedRoute'
+import { AppShell } from '@/shared/components/AppShell'
 
 const DashboardPlaceholder = () => (
   <div className="p-8">
@@ -9,24 +9,23 @@ const DashboardPlaceholder = () => (
   </div>
 )
 
-function RequireAuth({ children }: { children: ReactNode }) {
-  const token = useSessionStore((s) => s.accessToken)
-  if (!token) return <Navigate to="/login" replace />
-  return <>{children}</>
-}
+const ForbiddenPage = () => (
+  <div className="p-8">
+    <h1 className="text-2xl font-bold text-red-600">403 — Sin permisos</h1>
+    <p className="mt-2 text-gray-600">No tenés acceso a esta sección.</p>
+  </div>
+)
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route
-        path="/"
-        element={
-          <RequireAuth>
-            <DashboardPlaceholder />
-          </RequireAuth>
-        }
-      />
+      <Route path="/403" element={<ForbiddenPage />} />
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppShell />}>
+          <Route path="/" element={<DashboardPlaceholder />} />
+        </Route>
+      </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
