@@ -36,7 +36,11 @@ api.interceptors.response.use(
       const isRefreshCall = config.url?.endsWith('/auth/refresh') ?? false
       if (isRefreshCall || config._retry) {
         useSessionStore.getState().clearSession()
-        window.location.href = '/login'
+        // Only redirect if not already on /login — prevents infinite reload loop
+        // when bootstrap's own /auth/refresh fails while the user is at /login.
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
         return Promise.reject(error)
       }
 

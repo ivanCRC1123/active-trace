@@ -1,4 +1,7 @@
-import { Routes, Route } from 'react-router-dom'
+import { type ReactNode } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { LoginPage } from '@/features/auth/pages/LoginPage'
+import { useSessionStore } from '@/store/sessionStore'
 
 const DashboardPlaceholder = () => (
   <div className="p-8">
@@ -6,10 +9,25 @@ const DashboardPlaceholder = () => (
   </div>
 )
 
+function RequireAuth({ children }: { children: ReactNode }) {
+  const token = useSessionStore((s) => s.accessToken)
+  if (!token) return <Navigate to="/login" replace />
+  return <>{children}</>
+}
+
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<DashboardPlaceholder />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/"
+        element={
+          <RequireAuth>
+            <DashboardPlaceholder />
+          </RequireAuth>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
