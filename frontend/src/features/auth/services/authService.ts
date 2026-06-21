@@ -55,3 +55,11 @@ export async function refreshToken(): Promise<string> {
   const res = await api.post<{ access_token: string }>('/auth/refresh')
   return res.data.access_token
 }
+
+export async function forgotPassword(email: string): Promise<void> {
+  await api.post('/auth/forgot', { email })
+}
+
+export async function resetPassword(token: string, new_password: string): Promise<void> {
+  await api.post('/auth/reset', { token, new_password })
+}

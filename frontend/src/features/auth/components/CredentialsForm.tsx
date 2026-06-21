@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -69,6 +70,12 @@ export function CredentialsForm({ onSubmit, loading, error }: Props) {
       >
         {loading ? 'Ingresando...' : 'Ingresar'}
       </button>
+
+      <div className="mt-4 text-center">
+        <Link to="/forgot-password" className="text-blue-600 text-sm hover:underline">
+          ¿Olvidaste tu contraseña?
+        </Link>
+      </div>
     </form>
   )
 }
