@@ -10,10 +10,12 @@ interface MenuItemDef {
 
 export const MENU_ITEMS: MenuItemDef[] = [
   { label: 'Inicio', path: '/', permission: null },
+  { label: 'Calificaciones', path: '/calificaciones', permission: 'calificaciones:importar' },
+  { label: 'Monitor', path: '/monitor', permission: 'atrasados:ver' },
+  { label: 'Comunicaciones', path: '/comunicaciones', permission: 'comunicacion:enviar' },
   { label: 'Usuarios', path: '/usuarios', permission: 'usuarios:gestionar' },
   { label: 'Alumnos', path: '/alumnos', permission: 'padron:ver' },
   { label: 'Materias', path: '/materias', permission: 'estructura_academica:gestionar' },
-  { label: 'Comunicación', path: '/comunicacion', permission: 'comunicacion:enviar' },
   { label: 'Liquidaciones', path: '/liquidaciones', permission: 'liquidaciones:calcular_cerrar' },
   { label: 'Auditoría', path: '/auditoria', permission: 'auditoria:ver' },
 ]
