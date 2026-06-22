@@ -70,7 +70,18 @@ export interface NotaFinalAlumno {
   comision: string | null
   aprobadas: number
   total_calificaciones: number
-  nota_final_pct: number | null
+  pct_actividades_aprobadas: number | null
+}
+
+export interface RankingResponse {
+  items: RankingItem[]
+  total_incluidos: number
+  total_excluidos: number
+}
+
+export interface NotasFinalesResponse {
+  items: NotaFinalAlumno[]
+  total_alumnos: number
 }
 
 export interface EntregaSinCorregir {
