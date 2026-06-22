@@ -6,6 +6,7 @@ import { ProtectedRoute } from '@/shared/components/ProtectedRoute'
 import { AppShell } from '@/shared/components/AppShell'
 import { CalificacionesHomePage } from '@/features/calificaciones/pages/CalificacionesHomePage'
 import { MateriaDashboardPage } from '@/features/calificaciones/pages/MateriaDashboardPage'
+import { ImportarPage } from '@/features/calificaciones/pages/ImportarPage'
 import { MonitorPage } from '@/features/monitor/pages/MonitorPage'
 import { ComunicacionesPage } from '@/features/comunicaciones/pages/ComunicacionesPage'
 
@@ -44,7 +45,11 @@ export function AppRoutes() {
           <Route element={<ProtectedRoute requiredPermission="atrasados:ver" />}>
             <Route path="calificaciones/:materiaId/:cohorteId" element={<MateriaDashboardPage />}>
               <Route index element={<Navigate to="importar" replace />} />
-              <Route path="importar" element={<TabPlaceholder label="Importar" />} />
+              <Route
+                element={<ProtectedRoute requiredPermission="calificaciones:importar" />}
+              >
+                <Route path="importar" element={<ImportarPage />} />
+              </Route>
               <Route path="atrasados" element={<TabPlaceholder label="Atrasados" />} />
               <Route path="ranking" element={<TabPlaceholder label="Ranking" />} />
               <Route path="notas-finales" element={<TabPlaceholder label="Notas finales" />} />

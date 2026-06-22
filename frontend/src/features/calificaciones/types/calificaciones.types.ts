@@ -1,32 +1,42 @@
-export interface ActividadDetectada {
+// Types matching real backend contract (C-10 schemas)
+
+export interface ActivityInfo {
   nombre: string
   tipo: 'numerica' | 'textual'
-  total_notas: number
 }
 
-export interface CalificacionesPreview {
-  actividades_detectadas: ActividadDetectada[]
-  alumnos_detectados: number
-  advertencias: string[]
+export interface GradePreview {
+  actividades: ActivityInfo[]
+  total_alumnos: number
+  warnings: string[]
 }
 
-export interface CalificacionesImportResult {
-  actividades_importadas: number
-  calificaciones_creadas: number
-  calificaciones_actualizadas: number
-  total_aprobadas: number
-  advertencias: string[]
+export interface ImportarCalificacionesResult {
+  importadas: number
+  actualizadas: number
+  omitidas: number
+  warnings: string[]
+}
+
+export interface VaciarResult {
+  eliminadas: number
 }
 
 export interface UmbralMateriaResponse {
   id: string | null
   asignacion_id: string | null
-  materia_id: string
+  materia_id: string | null
   umbral_pct: number
   valores_aprobatorios: string[]
   es_default: boolean
 }
 
+export interface UmbralMateriaRequest {
+  umbral_pct: number
+  valores_aprobatorios: string[]
+}
+
+// Future slices (Atrasados, Ranking, etc.)
 export interface AlumnoAtrasado {
   entrada_padron_id: string
   nombre: string
