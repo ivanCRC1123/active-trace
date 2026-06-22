@@ -21,6 +21,7 @@ from app.schemas.asignaciones import (
     AsignacionCreate,
     AsignacionResponse,
     AsignacionUpdate,
+    MeAsignacionItem,
 )
 
 
@@ -103,3 +104,27 @@ class AsignacionService:
     async def delete_asignacion(self, *, id: UUID, tenant_id: UUID) -> None:
         if not await self._repo(tenant_id).soft_delete(id):
             raise ValueError("asignacion not found")
+
+    async def list_mis_asignaciones(
+        self, *, user_id: UUID, tenant_id: UUID
+    ) -> list[MeAsignacionItem]:
+        today = date.today()
+        rows = await self._repo(tenant_id).list_by_usuario(
+            user_id, estado_vigencia="Vigente", today=today
+        )
+        return [
+            MeAsignacionItem(
+                id=r.id,
+                materia_id=r.materia_id,
+                materia_nombre=r.materia_nombre,
+                carrera_id=r.carrera_id,
+                carrera_nombre=r.carrera_nombre,
+                cohorte_id=r.cohorte_id,
+                cohorte_nombre=r.cohorte_nombre,
+                comisiones=r.comisiones,
+                rol_nombre=r.rol_nombre,
+                desde=r.desde,
+                hasta=r.hasta,
+            )
+            for r in rows
+        ]

@@ -1,4 +1,4 @@
-"""Pydantic schemas for Asignacion (C-07)."""
+"""Pydantic schemas for Asignacion (C-07, C-22)."""
 
 from datetime import date, datetime
 from uuid import UUID
@@ -45,3 +45,21 @@ class AsignacionResponse(BaseModel):
     estado_vigencia: str
     created_at: datetime
     updated_at: datetime
+
+
+class MeAsignacionItem(BaseModel):
+    """Asignación vigente del usuario autenticado, con nombres resueltos."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: UUID
+    materia_id: UUID | None = None
+    materia_nombre: str | None = None
+    carrera_id: UUID | None = None
+    carrera_nombre: str | None = None
+    cohorte_id: UUID | None = None
+    cohorte_nombre: str | None = None
+    comisiones: list
+    rol_nombre: str
+    desde: date
+    hasta: date | None = None
